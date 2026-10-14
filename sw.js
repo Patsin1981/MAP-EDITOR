@@ -1,4 +1,4 @@
-const CACHE_NAME = 'map-editor-v1';
+const CACHE_NAME = 'map-editor-v2';
 const urlsToCache = [
   './',
   './index.html',
