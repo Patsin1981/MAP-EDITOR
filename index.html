@@ -1484,8 +1484,55 @@ const settingsModal = document.getElementById("settings-modal");
 const aboutModal = document.getElementById("about-modal");
 
 // Tab menu button
-document.getElementById("tab-menu").addEventListener("click", () => {
-  bottomSheet.classList.toggle("open");
+const tabMenuBtn = document.getElementById("tab-menu");
+if (tabMenuBtn) {
+  console.log("Tab menu button found:", tabMenuBtn);
+  tabMenuBtn.addEventListener("click", (e) => {
+    console.log("Tab menu clicked", e);
+    bottomSheet.classList.toggle("open");
+  });
+} else {
+  console.error("Tab menu button not found!");
+}
+
+// Tab switching
+const tabButtons = document.querySelectorAll('.tabs button:not(#tab-menu)');
+tabButtons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    console.log("Tab clicked:", btn.id);
+    // Remove aria-selected from all tabs
+    tabButtons.forEach(b => b.setAttribute('aria-selected', 'false'));
+    // Set current tab as selected
+    btn.setAttribute('aria-selected', 'true');
+
+    // Scroll to relevant section
+    const tabId = btn.id;
+    const pane = document.getElementById('pane-road');
+    if (!pane) return;
+
+    if (tabId === 'tab-road') {
+      // Scroll to top
+      pane.scrollTop = 0;
+    } else if (tabId === 'tab-equip') {
+      // Scroll to equipment section (5th group)
+      const equipSection = pane.querySelector('.group:nth-of-type(5)');
+      if (equipSection) {
+        equipSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else if (tabId === 'tab-draw') {
+      // Scroll to drawing section (8th group)
+      const drawSection = pane.querySelector('.group:nth-of-type(8)');
+      if (drawSection) {
+        drawSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    } else if (tabId === 'tab-export') {
+      // Scroll to export section (10th group)
+      const exportSection = pane.querySelector('.group:nth-of-type(10)');
+      if (exportSection) {
+        exportSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  });
 });
 
 // Close bottom sheet
