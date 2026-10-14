@@ -115,8 +115,8 @@ table.sections input { width: 100%; padding: 4px 5px; }
   aside { border-left: 0; border-top: 1px solid var(--line); }
   .brand { padding: 10px 12px 8px; }
   .brand h1 { font-size: 18px; }
-  .tabs { order: 4; border-top: 1px solid var(--line); border-bottom: 0; position: fixed; bottom: 0; left: 0; right: 0; background: var(--panel); z-index: 9999; padding-bottom: env(safe-area-inset-bottom, 0px); pointer-events: auto; }
-  .tabs button { padding: 10px 6px; font-size: 12px; flex: 1; pointer-events: auto; }
+  .tabs { order: 4; border-top: 1px solid var(--line); border-bottom: 0; position: fixed; bottom: 0; left: 0; right: 0; background: var(--panel); z-index: 99999; padding-bottom: env(safe-area-inset-bottom, 0px); pointer-events: auto; height: 60px; display: flex; }
+  .tabs button { padding: 10px 6px; font-size: 12px; flex: 1; pointer-events: auto; border: none; background: transparent; cursor: pointer; }
   .tabs button#tab-menu { font-size: 18px; padding: 8px; }
   .quick-actions { padding: 8px 12px; }
   .quick-btn { font-size: 11px; padding: 6px 8px; min-width: 60px; }
@@ -1468,13 +1468,15 @@ if (firstRun && road) {
 // Register Service Worker for PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(registration => {
-        console.log('Service Worker registered: ', registration);
-      })
-      .catch(error => {
-        console.log('Service Worker registration failed: ', error);
-      });
+    // Temporarily disable service worker to force cache refresh
+    // navigator.serviceWorker.register('./sw.js')
+    //   .then(registration => {
+    //     console.log('Service Worker registered: ', registration);
+    //   })
+    //   .catch(error => {
+    //     console.log('Service Worker registration failed: ', error);
+    //   });
+    console.log('Service Worker temporarily disabled for cache refresh');
   });
 }
 
