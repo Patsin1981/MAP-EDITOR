@@ -112,17 +112,73 @@ table.sections input { width: 100%; padding: 4px 5px; }
   aside { border-left: 0; border-top: 1px solid var(--line); }
   .brand { padding: 10px 12px 8px; }
   .brand h1 { font-size: 18px; }
-  .tabs { order: 4; border-top: 1px solid var(--line); border-bottom: 0; }
-  .tabs button { padding: 10px 6px; font-size: 12px; }
+  .tabs { order: 4; border-top: 1px solid var(--line); border-bottom: 0; position: fixed; bottom: 0; left: 0; right: 0; background: var(--panel); z-index: 1000; padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .tabs button { padding: 10px 6px; font-size: 12px; flex: 1; }
+  .tabs button#tab-menu { font-size: 18px; padding: 8px; }
   .quick-actions { padding: 8px 12px; }
   .quick-btn { font-size: 11px; padding: 6px 8px; min-width: 60px; }
-  .pane { padding: 12px; gap: 12px; }
+  .pane { padding: 12px; gap: 12px; padding-bottom: 60px; }
   .group { padding: 12px; }
   .group > h2 { font-size: 13px; }
   .btn { padding: 8px 12px; font-size: 13px; min-height: 36px; }
   .btn.small { padding: 5px 10px; font-size: 11px; min-height: 28px; }
   .palette button { padding: 6px 2px 5px; font-size: 10px; }
   .palette svg { width: 24px; height: 24px; }
+  
+  /* Bottom Sheet */
+  .bottom-sheet {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--panel); border-top: 1px solid var(--line);
+    border-radius: 16px 16px 0 0;
+    padding: 16px;
+    z-index: 2000;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+  }
+  .bottom-sheet.open { transform: translateY(0); }
+  .bottom-sheet-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .bottom-sheet-header h3 { margin: 0; font-size: 16px; }
+  .close-btn {
+    background: none; border: none; font-size: 24px;
+    color: var(--muted); cursor: pointer; padding: 8px;
+  }
+  .menu-item {
+    width: 100%; padding: 16px;
+    background: var(--field); border: 1px solid var(--line);
+    border-radius: 8px;
+    text-align: left;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+  
+  /* Modal */
+  .modal {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 3000;
+  }
+  .modal.open { display: flex; }
+  .modal-content {
+    background: var(--panel);
+    border-radius: 12px;
+    max-width: 90%;
+    max-height: 80%;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .modal-header h2 { margin: 0; font-size: 18px; }
+  .modal-body { gap: 16px; }
+  .modal-body .group h3 { font-size: 14px; margin-bottom: 8px; }
+  .modal-body ul { padding-left: 20px; margin: 0; }
+  .modal-body li { margin-bottom: 4px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 
@@ -159,6 +215,10 @@ table.sections input { width: 100%; padding: 4px 5px; }
   </div>
   <div class="tabs" role="tablist">
     <button id="tab-road" role="tab" aria-selected="true" data-pane="pane-road">🛣️ ถนน</button>
+    <button id="tab-equip" role="tab" aria-selected="false" data-pane="pane-equip">🚧 อุปกรณ์</button>
+    <button id="tab-draw" role="tab" aria-selected="false" data-pane="pane-draw">✏️ วาด</button>
+    <button id="tab-export" role="tab" aria-selected="false" data-pane="pane-export">📤 ส่งออก</button>
+    <button id="tab-menu" role="tab" aria-selected="false">⋯</button>
   </div>
 
   <section class="pane" id="pane-road">
@@ -295,6 +355,99 @@ table.sections input { width: 100%; padding: 4px 5px; }
     </div>
   </section>
 </aside>
+
+<!-- Bottom Sheet for Menu -->
+<div class="bottom-sheet" id="bottom-sheet" hidden>
+  <div class="bottom-sheet-header">
+    <h3>เมนู</h3>
+    <button class="close-btn" id="close-bottom-sheet">✕</button>
+  </div>
+  <div class="bottom-sheet-content">
+    <button class="menu-item" id="menu-settings">⚙️ ตั้งค่า</button>
+    <button class="menu-item" id="menu-about">ℹ️ เกี่ยวกับ</button>
+    <button class="menu-item" id="menu-reset">🔄 รีเซ็ตทั้งหมด</button>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal" id="settings-modal" hidden>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>⚙️ ตั้งค่า</h2>
+      <button class="close-btn" id="close-settings">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="group">
+        <h3>ธีม</h3>
+        <div class="row"><label><input id="in-theme-dark" type="checkbox" checked> โหมด</label></div>
+      </div>
+      <div class="group">
+        <h3>ภาษา</h3>
+        <div class="row"><label><input type="radio" name="lang" value="th" checked> ไทย</label></div>
+        <div class="row"><label><input type="radio" name="lang" value="en"> English</label></div>
+      </div>
+      <div class="group">
+        <h3>ผู้ให้บริการแผนที่</h3>
+        <div class="row"><label><input type="radio" name="map-provider" value="esri" checked> Esri (ดาวเทียม)</label></div>
+        <div class="row"><label><input type="radio" name="map-provider" value="osm"> OpenStreetMap</label></div>
+      </div>
+      <div class="group">
+        <h3>หน่วยวัด</h3>
+        <div class="row"><label><input type="radio" name="units" value="m" checked> เมตร</label></div>
+        <div class="row"><label><input type="radio" name="units" value="km"> กิโลเมตร</label></div>
+      </div>
+      <div class="group">
+        <h3>บันทึกอัตโนมัติ</h3>
+        <div class="row"><label><input id="in-autosave" type="checkbox" checked> เปิด Auto-save</label></div>
+      </div>
+      <div class="group">
+        <h3>ล้างข้อมูล</h3>
+        <div class="row"><button class="btn" id="btn-clear-storage">ล้างข้อมูลที่บันทึก</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- About Modal -->
+<div class="modal" id="about-modal" hidden>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>ℹ️ เกี่ยวกับ</h2>
+      <button class="close-btn" id="close-about">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="group">
+        <h3>Map Editor</h3>
+        <p class="hint">เวอร์ชัน: 1.0</p>
+        <p class="hint">เครื่องมือแก้ไขแผนที่และสร้างแผนผัง</p>
+      </div>
+      <div class="group">
+        <h3>ฟีเจอร์หลัก</h3>
+        <ul class="hint">
+          <li>🗺️ แผนที่ดาวเทียม</li>
+          <li>✏️ วาดเส้นฟรีแฮนด์</li>
+          <li>📏 วัดระยะทาง</li>
+          <li>📍 มาร์กเกอร์กำหนดเอง</li>
+          <li>🚧 วางอุปกรณ์</li>
+          <li>📤 ส่งออกภาพ</li>
+        </ul>
+      </div>
+      <div class="group">
+        <h3>วิธีใช้งาน</h3>
+        <ul class="hint">
+          <li>1. โหลดไฟล์ GPX หรือใช้เส้นทางเริ่ม</li>
+          <li>2. ปรับขอบถนนและวางอุปกรณ์</li>
+          <li>3. บันทึกภาพหรือแชร์ลิงก์</li>
+        </ul>
+      </div>
+      <div class="group">
+        <h3>GitHub</h3>
+        <a href="https://github.com/Patsin1981/MAP-EDITOR" target="_blank" class="btn">ดู source code</a>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast" hidden></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -1321,6 +1474,88 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
+
+/* ===== MOBILE BOTTOM SHEET & MODALS ===== */
+const bottomSheet = document.getElementById("bottom-sheet");
+const settingsModal = document.getElementById("settings-modal");
+const aboutModal = document.getElementById("about-modal");
+
+// Tab menu button
+document.getElementById("tab-menu").addEventListener("click", () => {
+  bottomSheet.classList.toggle("open");
+});
+
+// Close bottom sheet
+document.getElementById("close-bottom-sheet").addEventListener("click", () => {
+  bottomSheet.classList.remove("open");
+});
+
+// Open settings
+document.getElementById("menu-settings").addEventListener("click", () => {
+  bottomSheet.classList.remove("open");
+  settingsModal.classList.add("open");
+});
+
+// Open about
+document.getElementById("menu-about").addEventListener("click", () => {
+  bottomSheet.classList.remove("open");
+  aboutModal.classList.add("open");
+});
+
+// Reset all
+document.getElementById("menu-reset").addEventListener("click", () => {
+  if (confirm("คุณแน่ใจจะรีเซ็ตทั้งหมด?")) {
+    localStorage.removeItem(STORE_KEY);
+    location.reload();
+  }
+});
+
+// Close modals
+document.getElementById("close-settings").addEventListener("click", () => {
+  settingsModal.classList.remove("open");
+});
+document.getElementById("close-about").addEventListener("click", () => {
+  aboutModal.classList.remove("open");
+});
+
+// Close modals when clicking outside
+[settingsModal, aboutModal].forEach(modal => {
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.classList.remove("open");
+  });
+});
+
+// Theme toggle
+document.getElementById("in-theme-dark").addEventListener("change", (e) => {
+  if (e.target.checked) {
+    document.documentElement.setAttribute("data-theme", "dark");
+  } else {
+    document.documentElement.removeAttribute("data-theme");
+  }
+});
+
+// Language toggle (reload to apply)
+document.querySelectorAll("input[name='lang']").forEach(radio => {
+  radio.addEventListener("change", () => {
+    location.reload();
+  });
+});
+
+// Map provider (would require reload to apply)
+document.querySelectorAll("input[name='map-provider']").forEach(radio => {
+  radio.addEventListener("change", () => {
+    // For now, just show toast - actual implementation would reload with different tile layer
+    toast("การเปลี่ยนผู้ให้บริการจะมีในอนาคต์");
+  });
+});
+
+// Units toggle
+document.querySelectorAll("input[name='units']").forEach(radio => {
+  radio.addEventListener("change", () => {
+    // Update display units in the app
+    toast("เปลี่ยนหน่วยวัดเรียบร้อยแล้ว");
+  });
+});
 </script>
 </body>
 </html>
