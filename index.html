@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Course Builder - เครื่องมือสร้างแผนผังสนามแข่งขัน</title>
-<meta name="description" content="เครื่องมือสร้างแผนผังสนามแข่งขันจักรยาน/รถ พร้อมแผนที่ดาวเทียม ปรับขอบถนน วางอุปกรณ์ และส่งออกภาพสำหรับ presentation">
-<meta name="keywords" content="course builder, แผนผังสนาม, สนามแข่งขัน, race course, circuit layout, GPX editor, cycling map">
-<meta name="author" content="Course Builder">
+<title>Map Editor - เครื่องมือแก้ไขแผนที่และสร้างแผนผัง</title>
+<meta name="description" content="เครื่องมือแก้ไขแผนที่และสร้างแผนผัง พร้อมแผนที่ดาวเทียม วาดเส้น วัดระยะ วางมาร์กเกอร์ และส่งออกภาพ">
+<meta name="keywords" content="map editor, แก้ไขแผนที่, แผนผัง, map drawing, map annotation, GPX editor, route planning">
+<meta name="author" content="Map Editor">
 <meta name="robots" content="index, follow">
-<meta property="og:title" content="Course Builder - เครื่องมือสร้างแผนผังสนามแข่งขัน">
-<meta property="og:description" content="เครื่องมือสร้างแผนผังสนามแข่งขันจักรยาน/รถ พร้อมแผนที่ดาวเทียม ปรับขอบถนน วางอุปกรณ์ และส่งออกภาพ">
+<meta property="og:title" content="Map Editor - เครื่องมือแก้ไขแผนที่และสร้างแผนผัง">
+<meta property="og:description" content="เครื่องมือแก้ไขแผนที่และสร้างแผนผัง พร้อมแผนที่ดาวเทียม วาดเส้น วัดระยะ วางมาร์กเกอร์ และส่งออกภาพ">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="th_TH">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Course Builder - เครื่องมือสร้างแผนผังสนามแข่งขัน">
-<meta name="twitter:description" content="เครื่องมือสร้างแผนผังสนามแข่งขันจักรยาน/รถ พร้อมแผนที่ดาวเทียม">
+<meta name="twitter:title" content="Map Editor - เครื่องมือแก้ไขแผนที่และสร้างแผนผัง">
+<meta name="twitter:description" content="เครื่องมือแก้ไขแผนที่และสร้างแผนผัง พร้อมแผนที่ดาวเทียม">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect x='5' y='15' width='30' height='10' fill='%23d6311f' rx='2'/><rect x='5' y='15' width='5' height='10' fill='%23fff'/><rect x='15' y='15' width='5' height='10' fill='%23fff'/><rect x='25' y='15' width='5' height='10' fill='%23fff'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -116,8 +116,8 @@ table.sections input { width: 100%; padding: 4px 5px; }
 <div id="map" aria-label="แผนที่ภาพดาวเทียม"></div>
 <aside>
   <div class="brand">
-    <h1 id="course-title-view">พีระ</h1>
-    <div class="meta" id="meta">กำลังโหลดเส้นทาง…</div>
+    <h1 id="course-title-view">Map Editor</h1>
+    <div class="meta" id="meta">กำลังโหลดแผนที่…</div>
     <div class="row" style="margin-top: 8px;">
       <button class="btn small" id="btn-undo" type="button" disabled title="ย้อนกลับ (Ctrl+Z)">↩ ย้อนกลับ</button>
       <button class="btn small" id="btn-redo" type="button" disabled title="ทำซ้ำ (Ctrl+Y)">↪ ทำซ้ำ</button>
@@ -126,6 +126,7 @@ table.sections input { width: 100%; padding: 4px 5px; }
   <div class="tabs" role="tablist">
     <button id="tab-road" role="tab" aria-selected="true" data-pane="pane-road">ถนน</button>
     <button id="tab-equip" role="tab" aria-selected="false" data-pane="pane-equip">อุปกรณ์</button>
+    <button id="tab-draw" role="tab" aria-selected="false" data-pane="pane-draw">วาด</button>
     <button id="tab-export" role="tab" aria-selected="false" data-pane="pane-export">ส่งออก</button>
     <button id="tab-settings" role="tab" aria-selected="false" data-pane="pane-settings">ตั้งค่า</button>
   </div>
@@ -230,6 +231,38 @@ table.sections input { width: 100%; padding: 4px 5px; }
     </div>
   </section>
 
+  <section class="pane" id="pane-draw" hidden>
+    <div class="group">
+      <h2>วาดเส้นฟรีแฮนด์</h2>
+      <p class="hint">คลิกและลากเพื่อวาดเส้นอิสระบนแผนที่</p>
+      <div class="row"><button class="btn primary" id="btn-draw-line" type="button" aria-pressed="false">วาดเส้น</button></div>
+      <div class="row"><label for="in-draw-color">สีเส้น</label>
+        <select id="in-draw-color">
+          <option value="#ff0000">แดง</option>
+          <option value="#00ff00">เขียว</option>
+          <option value="#0000ff">น้ำเงิน</option>
+          <option value="#ffff00">เหลือง</option>
+          <option value="#ffffff" selected>ขาว</option>
+          <option value="#000000">ดำ</option>
+        </select></div>
+      <div class="row"><label for="in-draw-width">ความหนา</label><input id="in-draw-width" type="range" min="1" max="10" step="1" value="3"><span class="unit" id="out-draw-width">3 px</span></div>
+      <div class="row"><button class="btn small" id="btn-clear-draw" type="button">ล้างเส้นทั้งหมด</button></div>
+    </div>
+    <div class="group">
+      <h2>วัดระยะทาง</h2>
+      <p class="hint">คลิกบนแผนที่เพื่อวัดระยะทางระหว่างจุด</p>
+      <div class="row"><button class="btn primary" id="btn-measure" type="button" aria-pressed="false">วัดระยะ</button></div>
+      <div class="row"><span class="hint" id="measure-result">ระยะทาง: -</span></div>
+      <div class="row"><button class="btn small" id="btn-clear-measure" type="button">ล้างการวัด</button></div>
+    </div>
+    <div class="group">
+      <h2>มาร์กเกอร์กำหนดเอง</h2>
+      <p class="hint">คลิกเพื่อวางมาร์กเกอร์ปกติ และเพิ่มข้อความ</p>
+      <div class="row"><button class="btn primary" id="btn-marker" type="button" aria-pressed="false">วางมาร์กเกอร์</button></div>
+      <div class="row"><label for="in-marker-text">ข้อความ</label><input id="in-marker-text" type="text" placeholder="เช่น จุดนัดพบ"></div>
+    </div>
+  </section>
+
   <section class="pane" id="pane-settings" hidden>
     <div class="group">
       <h2>การตั้งค่าแอป</h2>
@@ -257,7 +290,7 @@ table.sections input { width: 100%; padding: 4px 5px; }
 "use strict";
 /* ===== ข้อมูลเส้นทางเริ่มต้น (จากไฟล์ GPX ที่ส่งมา) ===== */
 const DEFAULT_TRACK = [[12.91993738,101.01017107],[12.91991532,101.01030452],[12.91987387,101.01044255],[12.91983828,101.01057832],[12.91981287,101.01071488],[12.91979623,101.01085935],[12.91977333,101.01099742],[12.91974527,101.01113447],[12.9197193,101.01125657],[12.91971733,101.0113561],[12.91974238,101.01146297],[12.9197874,101.01154633],[12.91989588,101.01162283],[12.91999867,101.01165012],[12.92012573,101.01165595],[12.92024443,101.01163848],[12.92036642,101.01159288],[12.92047877,101.0115342],[12.92057658,101.01147208],[12.92066043,101.01139485],[12.92073557,101.01129823],[12.92080092,101.01119477],[12.92084728,101.01110723],[12.92090797,101.01102717],[12.92100955,101.01096417],[12.92107725,101.01088613],[12.92113347,101.01081358],[12.92117828,101.01071885],[12.92120037,101.01059987],[12.92124357,101.01051228],[12.92131882,101.0104124],[12.92139372,101.01030175],[12.92147948,101.01018688],[12.92156232,101.010085],[12.92163682,101.01000682],[12.92173837,101.0099431],[12.92182805,101.00996267],[12.92187763,101.0100419],[12.92190358,101.01013425],[12.92193722,101.01027233],[12.92194913,101.01039308],[12.92193375,101.01052502],[12.92190792,101.01064682],[12.92186937,101.01075862],[12.92183195,101.01086175],[12.92183658,101.0109539],[12.92180743,101.01105855],[12.92176762,101.01115373],[12.92170982,101.01124612],[12.92165438,101.0113408],[12.92158722,101.01143795],[12.92151482,101.01153525],[12.92145603,101.01164015],[12.92141,101.0117365],[12.92133267,101.0118112],[12.92123088,101.0118252],[12.92113505,101.0119085],[12.92107832,101.01199683],[12.9210224,101.01209855],[12.9209661,101.012188],[12.92092102,101.0122692],[12.92085938,101.0123414],[12.92082623,101.01244252],[12.92080155,101.01254352],[12.92069722,101.01263208],[12.92058125,101.01266027],[12.92048437,101.0126814],[12.92037702,101.01268445],[12.92024127,101.0126813],[12.92010493,101.01264657],[12.92000437,101.0126214],[12.91990603,101.01265477],[12.9198076,101.01268138],[12.91970385,101.01264895],[12.91961087,101.01255342],[12.9195563,101.01246067],[12.9194849,101.01235928],[12.91942072,101.01225743],[12.9193594,101.0121575],[12.91932828,101.01206757],[12.91929452,101.01197548],[12.91924503,101.01189098],[12.9191573,101.01186733],[12.91907392,101.0118069],[12.91903288,101.01171467],[12.91899475,101.01161315],[12.91898032,101.01152202],[12.91897638,101.01142018],[12.91898568,101.01131337],[12.91901937,101.01120285],[12.91908617,101.01112133],[12.91911668,101.01101387],[12.91914985,101.01091163],[12.919197,101.01076305],[12.9192299,101.01067037],[12.9192795,101.01053653],[12.91932172,101.01040705],[12.9193556,101.01028665],[12.9193809,101.01018258],[12.91942513,101.010027],[12.91943962,101.00990332],[12.91942412,101.00980098],[12.91943638,101.00970722],[12.9195054,101.00957512],[12.91955548,101.00945133],[12.91958442,101.00935108],[12.91961852,101.0092626],[12.91966768,101.00915287],[12.91964065,101.009052],[12.91961557,101.00893788],[12.91970142,101.00890158],[12.91978843,101.00897762],[12.91984475,101.00906628],[12.91990043,101.00916748],[12.91996645,101.0092707]];
-const DEFAULT_NAME = "พีระ";
+const DEFAULT_NAME = "Map Editor";
 
 /* ===== GEOMETRY (pure functions) ===== */
 const R_EARTH = 6378137;
@@ -462,6 +495,12 @@ const state = {
   autosave: true,
 };
 let road = null, proj = null, placingType = null, selectedId = null, nextId = 1;
+let drawingMode = false, measuringMode = false, markerMode = false;
+let drawLayer = L.layerGroup().addTo(map);
+let measureLayer = L.layerGroup().addTo(map);
+let markerLayer = L.layerGroup().addTo(map);
+let drawPoints = [], measurePoints = [];
+let customMarkers = [];
 
 /* ===== UNDO/REDO ===== */
 const undoStack = [], redoStack = [], MAX_HISTORY = 50;
@@ -875,6 +914,87 @@ document.getElementById("btn-clear-storage-yes").addEventListener("click", () =>
   localStorage.removeItem(STORE_KEY);
   document.getElementById("clear-storage-confirm").hidden = true;
   toast("ล้างข้อมูลที่บันทึกแล้ว");
+});
+
+/* ===== DRAWING & MEASURING ===== */
+document.getElementById("btn-draw-line").addEventListener("click", () => {
+  drawingMode = !drawingMode;
+  const btn = document.getElementById("btn-draw-line");
+  btn.setAttribute("aria-pressed", String(drawingMode));
+  btn.textContent = drawingMode ? "หยุดวาด" : "วาดเส้น";
+  if (drawingMode) { setPlacing(null); measuringMode = false; markerMode = false; map.getContainer().style.cursor = "crosshair"; }
+  else { map.getContainer().style.cursor = ""; }
+});
+document.getElementById("in-draw-width").addEventListener("input", (e) => {
+  document.getElementById("out-draw-width").textContent = e.target.value + " px";
+});
+document.getElementById("btn-clear-draw").addEventListener("click", () => {
+  drawLayer.clearLayers();
+  drawPoints = [];
+  toast("ล้างเส้นทั้งหมดแล้ว");
+});
+
+document.getElementById("btn-measure").addEventListener("click", () => {
+  measuringMode = !measuringMode;
+  const btn = document.getElementById("btn-measure");
+  btn.setAttribute("aria-pressed", String(measuringMode));
+  btn.textContent = measuringMode ? "หยุดวัด" : "วัดระยะ";
+  if (measuringMode) { setPlacing(null); drawingMode = false; markerMode = false; map.getContainer().style.cursor = "crosshair"; }
+  else { map.getContainer().style.cursor = ""; }
+});
+document.getElementById("btn-clear-measure").addEventListener("click", () => {
+  measureLayer.clearLayers();
+  measurePoints = [];
+  document.getElementById("measure-result").textContent = "ระยะทาง: -";
+  toast("ล้างการวัดแล้ว");
+});
+
+document.getElementById("btn-marker").addEventListener("click", () => {
+  markerMode = !markerMode;
+  const btn = document.getElementById("btn-marker");
+  btn.setAttribute("aria-pressed", String(markerMode));
+  btn.textContent = markerMode ? "หยุดวาง" : "วางมาร์กเกอร์";
+  if (markerMode) { setPlacing(null); drawingMode = false; measuringMode = false; map.getContainer().style.cursor = "pointer"; }
+  else { map.getContainer().style.cursor = ""; }
+});
+
+map.on("click", (e) => {
+  if (drawingMode) {
+    drawPoints.push(e.latlng);
+    if (drawPoints.length > 1) {
+      const color = document.getElementById("in-draw-color").value;
+      const width = parseInt(document.getElementById("in-draw-width").value);
+      L.polyline([drawPoints[drawPoints.length - 2], drawPoints[drawPoints.length - 1]], {
+        color: color,
+        weight: width,
+        opacity: 0.8
+      }).addTo(drawLayer);
+    }
+    L.circleMarker(e.latlng, { radius: 3, color: "#000", fillColor: "#fff", fillOpacity: 1 }).addTo(drawLayer);
+  }
+  if (measuringMode) {
+    measurePoints.push(e.latlng);
+    if (measurePoints.length > 1) {
+      L.polyline([measurePoints[measurePoints.length - 2], measurePoints[measurePoints.length - 1]], {
+        color: "#00ff00",
+        weight: 2,
+        dashArray: "5, 10"
+      }).addTo(measureLayer);
+    }
+    const totalDist = measurePoints.reduce((sum, p, i) => {
+      if (i === 0) return 0;
+      return sum + measurePoints[i - 1].distanceTo(p);
+    }, 0);
+    document.getElementById("measure-result").textContent = `ระยะทาง: ${totalDist.toFixed(2)} ม.`;
+    L.circleMarker(e.latlng, { radius: 5, color: "#00ff00", fillColor: "#00ff00", fillOpacity: 0.5 }).addTo(measureLayer);
+  }
+  if (markerMode) {
+    const text = document.getElementById("in-marker-text").value || "จุด";
+    const marker = L.marker(e.latlng).addTo(markerLayer);
+    marker.bindPopup(text).openPopup();
+    customMarkers.push({ latlng: e.latlng, text });
+    toast(`วางมาร์กเกอร์: ${text}`);
+  }
 });
 
 function fitCourse() { if (road) map.fitBounds(L.latLngBounds(road.center.map(proj.toLL)).pad(0.12)); }

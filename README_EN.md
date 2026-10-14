@@ -1,9 +1,11 @@
-# Course Builder - Race Course Layout Tool
+# Map Editor - Map Editing and Annotation Tool
 
-A comprehensive tool for creating race course layouts for cycling and motor racing with full-featured capabilities:
+A comprehensive tool for editing maps and creating layouts with full-featured capabilities:
 
 - 🗺️ Satellite map (from Esri/Maxar)
-- ✏️ Drag-to-adjust road edges
+- ✏️ Freehand drawing on map
+- 📏 Distance measurement between points
+- 📍 Custom markers with text
 - 🚧 Place equipment (barriers, cones, CP points, etc.)
 - 📸 Export PNG images with frame and legend
 - 💾 Save/Load project files (JSON)
@@ -51,6 +53,12 @@ A comprehensive tool for creating race course layouts for cycling and motor raci
 - **Place in line**: Automatically place equipment along the road edge
 - **Selected item**: Edit rotation, add text labels, duplicate, delete
 - **Supported equipment**: Hay bales, tire barriers, concrete barriers, water barriers, cones, Start/Finish, CP points, marshal points, chicanes, medical units, spectator areas, pit
+
+### "Draw" Tab (New!)
+- **Freehand drawing**: Click and drag to draw freehand lines on the map
+- **Customize line**: Choose color and thickness for lines
+- **Distance measurement**: Click multiple points to measure total distance
+- **Custom markers**: Place markers with custom text labels
 
 ### "Export" Tab
 - **Save PNG image**: Create presentation-ready images with frame, north arrow, scale, and legend

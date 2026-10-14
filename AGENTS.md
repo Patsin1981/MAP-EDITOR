@@ -1,7 +1,7 @@
-# Course Builder - Project Settings
+# Map Editor - Project Settings
 
 ## Project Information
-- **Name**: Course Builder
+- **Name**: Map Editor
 - **Type**: Single-page Web Application
 - **Technology**: HTML, CSS, JavaScript (Vanilla)
 - **Dependencies**: Leaflet (CDN), Google Fonts (CDN)

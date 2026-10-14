@@ -7,7 +7,7 @@
 1. เข้าไปที่ [GitHub.com](https://github.com)
 2. ถ้ายังไม่มี account ให้สมัครก่อน
 3. คลิกปุ่ม **+** ที่มุมขวาบน → **New repository**
-4. ตั้งชื่อ repository (เช่น `course-builder`)
+4. ตั้งชื่อ repository (เช่น `map-editor`)
 5. เลือก **Public** (เพื่อให้ใครก็ได้เข้าใช้งานได้)
 6. **ไม่ต้อง** ติ๊ก Add a README file, .gitignore, license
 7. คลิก **Create repository**
@@ -40,7 +40,7 @@
 
 1. รอประมาณ 1-2 นาที
 2. หน้า Settings → Pages จะแสดง URL ของเว็บแอป
-   (เช่น `https://username.github.io/course-builder/`)
+   (เช่น `https://username.github.io/map-editor/`)
 3. คลิกลิงก์เพื่อเข้าใช้งาน
 4. แอปพร้อมใช้งานแล้ว! 🎉
 
