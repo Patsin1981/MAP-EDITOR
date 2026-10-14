@@ -532,11 +532,18 @@ function persist() {
 }
 
 /* ===== MAP ===== */
-const map = L.map("map", { zoomControl: true, maxZoom: 21, zoomSnap: 0.25, attributionControl: true });
-const SAT_URL = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
-const SAT_MAX_NATIVE = 19;
-L.tileLayer(SAT_URL, { maxZoom: 21, maxNativeZoom: SAT_MAX_NATIVE, attribution: "Imagery © Esri, Maxar, Earthstar Geographics" }).addTo(map);
-L.control.scale({ metric: true, imperial: false }).addTo(map);
+let map;
+try {
+  map = L.map("map", { zoomControl: true, maxZoom: 21, zoomSnap: 0.25, attributionControl: true });
+  const SAT_URL = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+  const SAT_MAX_NATIVE = 19;
+  L.tileLayer(SAT_URL, { maxZoom: 21, maxNativeZoom: SAT_MAX_NATIVE, attribution: "Imagery © Esri, Maxar, Earthstar Geographics" }).addTo(map);
+  L.control.scale({ metric: true, imperial: false }).addTo(map);
+  console.log("Map initialized successfully");
+} catch (e) {
+  console.error("Error initializing map:", e);
+  alert("เกิดข้อผิดพลาดในการโหลดแผนที่: " + e.message);
+}
 
 const roadLayer = L.layerGroup().addTo(map);
 const kmLayer = L.layerGroup().addTo(map);
@@ -814,15 +821,24 @@ document.addEventListener("keydown", (e) => {
 
 // palette
 const palette = document.getElementById("palette"), lineType = document.getElementById("in-l-type");
-for (const [key, eq] of Object.entries(EQUIP)) {
-  const b = document.createElement("button");
-  b.type = "button"; b.setAttribute("aria-pressed", "false"); b.dataset.type = key;
-  b.innerHTML = getCachedSvg(key) + `<span>${eq.name}</span>`;
-  b.addEventListener("click", () => setPlacing(placingType === key ? null : key));
-  palette.appendChild(b);
-  const o = document.createElement("option"); o.value = key; o.textContent = eq.name; lineType.appendChild(o);
+if (!palette) {
+  console.error("Palette element not found!");
+} else {
+  try {
+    for (const [key, eq] of Object.entries(EQUIP)) {
+      const b = document.createElement("button");
+      b.type = "button"; b.setAttribute("aria-pressed", "false"); b.dataset.type = key;
+      b.innerHTML = getCachedSvg(key) + `<span>${eq.name}</span>`;
+      b.addEventListener("click", () => setPlacing(placingType === key ? null : key));
+      palette.appendChild(b);
+      const o = document.createElement("option"); o.value = key; o.textContent = eq.name; lineType.appendChild(o);
+    }
+    lineType.value = "hay";
+    console.log("Palette initialized with", Object.keys(EQUIP).length, "items");
+  } catch (e) {
+    console.error("Error initializing palette:", e);
+  }
 }
-lineType.value = "hay";
 function setPlacing(type) {
   placingType = type;
   for (const b of palette.querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.type === type));
