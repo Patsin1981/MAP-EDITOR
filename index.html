@@ -52,11 +52,14 @@ aside { background: var(--panel); border-left: 1px solid var(--line); display: f
 .brand h1 { margin: 0; font: 700 20px/1.1 var(--font-display); letter-spacing: .02em; text-wrap: balance; }
 .brand .meta { margin-top: 4px; font: 12px var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
 .tabs { display: flex; border-bottom: 1px solid var(--line); }
-.tabs button { flex: 1; padding: 10px 4px; border: 0; background: none; color: var(--muted); font: 600 13px var(--font-display); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; border-bottom: 3px solid transparent; }
-.tabs button[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); }
-.pane { overflow-y: auto; padding: 14px 16px 24px; display: flex; flex-direction: column; gap: 16px; min-height: 0; flex: 1; }
-.group { display: flex; flex-direction: column; gap: 8px; }
-.group > h2 { margin: 0; font: 600 12px var(--font-display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.tabs button { flex: 1; padding: 14px 8px; border: 0; background: none; color: var(--muted); font: 700 14px var(--font-display); letter-spacing: .04em; text-transform: uppercase; cursor: pointer; border-bottom: 4px solid transparent; transition: all 0.2s ease; }
+.tabs button:hover { color: var(--fg); background: rgba(0,0,0,0.02); }
+.tabs button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+.pane { overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; min-height: 0; flex: 1; }
+.quick-actions { display: flex; gap: 8px; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.quick-btn { flex: 1; min-width: 80px; font-size: 12px; padding: 8px 12px; }
+.group { display: flex; flex-direction: column; gap: 12px; padding: 16px; background: var(--field); border-radius: 8px; border: 1px solid var(--line); }
+.group > h2 { margin: 0; font: 700 14px var(--font-display); letter-spacing: .06em; text-transform: uppercase; color: var(--accent); }
 .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .row label { flex: 1; min-width: 0; }
 .unit { font: 12px var(--font-mono); color: var(--muted); min-width: 48px; text-align: right; font-variant-numeric: tabular-nums; }
@@ -66,12 +69,12 @@ input[type=number], input[type=text], select {
   border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; min-width: 0;
 }
 input[type=number] { width: 64px; font-family: var(--font-mono); }
-.btn { font: 600 13px var(--font-body); padding: 8px 12px; border-radius: 4px; border: 1px solid var(--line); background: var(--field); color: var(--fg); cursor: pointer; transition: all 0.2s ease; }
-.btn:hover { border-color: var(--muted); transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.btn { font: 600 14px var(--font-body); padding: 10px 16px; border-radius: 6px; border: 1px solid var(--line); background: var(--field); color: var(--fg); cursor: pointer; transition: all 0.2s ease; min-height: 40px; }
+.btn:hover { border-color: var(--muted); transform: translateY(-1px); box-shadow: 0 3px 6px rgba(0,0,0,0.12); }
 .btn:active { transform: translateY(0); }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 700; }
 .btn.primary:hover { background: #e6402e; border-color: #e6402e; }
-.btn.small { padding: 4px 8px; font-size: 12px; }
+.btn.small { padding: 6px 12px; font-size: 13px; min-height: 32px; }
 button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--sel); outline-offset: 1px; }
 .hint { margin: 0; font-size: 12px; color: var(--muted); }
 table.sections { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -79,8 +82,9 @@ table.sections th { text-align: left; font: 500 11px var(--font-mono); color: va
 table.sections td { padding: 2px; }
 table.sections input { width: 100%; padding: 4px 5px; }
 .palette { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-.palette button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px 5px; border: 1px solid var(--line); border-radius: 4px; background: var(--field); color: var(--fg); font-size: 11px; line-height: 1.2; cursor: pointer; }
-.palette button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.palette button { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px 8px; border: 2px solid var(--line); border-radius: 8px; background: var(--field); color: var(--fg); font-size: 12px; line-height: 1.3; cursor: pointer; transition: all 0.2s ease; }
+.palette button:hover { border-color: var(--muted); transform: translateY(-2px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.palette button[aria-pressed="true"] { border-color: var(--accent); background: rgba(214, 49, 31, 0.05); box-shadow: 0 0 0 2px var(--accent); }
 .palette svg { width: 30px; height: 30px; }
 .selbox { border: 1px solid var(--line); border-radius: 4px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
 .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px); background: var(--fg); color: var(--bg); padding: 8px 14px; border-radius: 4px; font-size: 13px; z-index: 2000; max-width: calc(100% - 32px); opacity: 0; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
@@ -118,23 +122,25 @@ table.sections input { width: 100%; padding: 4px 5px; }
   <div class="brand">
     <h1 id="course-title-view">Map Editor</h1>
     <div class="meta" id="meta">กำลังโหลดแผนที่…</div>
-    <div class="row" style="margin-top: 8px;">
-      <button class="btn small" id="btn-undo" type="button" disabled title="ย้อนกลับ (Ctrl+Z)">↩ ย้อนกลับ</button>
-      <button class="btn small" id="btn-redo" type="button" disabled title="ทำซ้ำ (Ctrl+Y)">↪ ทำซ้ำ</button>
-    </div>
+  </div>
+  <div class="quick-actions">
+    <button class="btn small quick-btn" id="btn-undo" type="button" disabled title="ย้อนกลับ (Ctrl+Z)">↩ ย้อนกลับ</button>
+    <button class="btn small quick-btn" id="btn-redo" type="button" disabled title="ทำซ้ำ (Ctrl+Y)">↪ ทำซ้ำ</button>
+    <button class="btn small quick-btn" id="btn-fit" type="button" title="จัดให้เห็นทั้งหมด">🔍 จัดหน้าจอ</button>
+    <button class="btn small quick-btn" id="btn-save" type="button" title="บันทึกไฟล์">💾 บันทึก</button>
   </div>
   <div class="tabs" role="tablist">
-    <button id="tab-road" role="tab" aria-selected="true" data-pane="pane-road">ถนน</button>
-    <button id="tab-equip" role="tab" aria-selected="false" data-pane="pane-equip">อุปกรณ์</button>
-    <button id="tab-draw" role="tab" aria-selected="false" data-pane="pane-draw">วาด</button>
-    <button id="tab-export" role="tab" aria-selected="false" data-pane="pane-export">ส่งออก</button>
-    <button id="tab-settings" role="tab" aria-selected="false" data-pane="pane-settings">ตั้งค่า</button>
+    <button id="tab-road" role="tab" aria-selected="true" data-pane="pane-road">🛣️ ถนน</button>
+    <button id="tab-equip" role="tab" aria-selected="false" data-pane="pane-equip">🚧 อุปกรณ์</button>
+    <button id="tab-draw" role="tab" aria-selected="false" data-pane="pane-draw">✏️ วาด</button>
+    <button id="tab-export" role="tab" aria-selected="false" data-pane="pane-export">📤 ส่งออก</button>
+    <button id="tab-settings" role="tab" aria-selected="false" data-pane="pane-settings">⚙️ ตั้งค่า</button>
   </div>
 
   <section class="pane" id="pane-road">
     <div class="group">
       <h2>ลากปรับขอบถนน</h2>
-      <div class="row"><button class="btn primary" id="btn-edit-edges" type="button" aria-pressed="false">เริ่มลากปรับขอบ</button></div>
+      <div class="row"><button class="btn primary" id="btn-edit-edges" type="button" aria-pressed="false" title="คลิกเพื่อเริ่มปรับขอบถนน">เริ่มลากปรับขอบ</button></div>
       <div class="row">
         <label><input type="radio" name="edge-mode" id="mode-one" value="one" checked> ขยับขอบเดียว</label>
         <label><input type="radio" name="edge-mode" id="mode-both" value="both"> ขยับทั้งถนน</label>
@@ -142,7 +148,7 @@ table.sections input { width: 100%; padding: 4px 5px; }
       <div class="row"><label for="in-hstep">จุดจับทุก</label>
         <select id="in-hstep"><option value="10">10 ม.</option><option value="20" selected>20 ม.</option><option value="40">40 ม.</option></select></div>
       <p class="hint" id="edge-status">ลากจุดบนเส้นขอบเข้าในหรือออกนอก จุดจะเลื่อนได้แค่แนวขวางถนน ดับเบิลคลิกที่จุดเพื่อคืนค่าเดิม จุดสีแดงคือจุดที่ปรับแล้ว</p>
-      <div class="row"><button class="btn small" id="btn-reset-edges" type="button">คืนค่าการลากทั้งหมด</button></div>
+      <div class="row"><button class="btn small" id="btn-reset-edges" type="button" title="คืนค่าขอบถนนทั้งหมดเป็นค่าเดิม">คืนค่าการลากทั้งหมด</button></div>
       <div class="row" id="reset-edges-confirm" hidden><span class="hint">ล้างการปรับขอบทั้งหมดแน่ใจไหม</span><button class="btn small primary" id="btn-reset-yes" type="button">ล้าง</button><button class="btn small" id="btn-reset-no" type="button">ยกเลิก</button></div>
     </div>
     <div class="group">
@@ -159,7 +165,7 @@ table.sections input { width: 100%; padding: 4px 5px; }
         <thead><tr><th>จาก ม.</th><th>ถึง ม.</th><th>เลื่อน ม.</th><th>กว้าง ม.</th><th></th></tr></thead>
         <tbody id="sec-body"></tbody>
       </table>
-      <div class="row"><button class="btn small" id="btn-add-sec" type="button">+ เพิ่มช่วง</button><span class="hint" id="click-info"></span></div>
+      <div class="row"><button class="btn small" id="btn-add-sec" type="button" title="เพิ่มช่วงปรับแต่งเฉพาะที่">+ เพิ่มช่วง</button><span class="hint" id="click-info"></span></div>
     </div>
     <div class="group">
       <h2>รูปแบบเส้นขอบ</h2>
@@ -214,11 +220,11 @@ table.sections input { width: 100%; padding: 4px 5px; }
   <section class="pane" id="pane-export" hidden>
     <div class="group">
       <h2>ภาพสำหรับ presentation</h2>
-      <div class="row"><label for="in-title">หัวข้อบนภาพ</label><input id="in-title" type="text" value="พีระ"></div>
-      <div class="row"><label for="in-sub">บรรทัดรอง</label><input id="in-sub" type="text" value="ผังสนามแข่งขัน"></div>
+      <div class="row"><label for="in-title">หัวข้อบนภาพ</label><input id="in-title" type="text" value="Map Editor"></div>
+      <div class="row"><label for="in-sub">บรรทัดรอง</label><input id="in-sub" type="text" value="แผนที่และแผนผัง"></div>
       <div class="row"><label><input id="in-legend" type="checkbox" checked> ใส่คำอธิบายสัญลักษณ์</label></div>
       <div class="row"><label for="in-scale">ความละเอียด</label><select id="in-scale"><option value="1">เท่าหน้าจอ</option><option value="2" selected>2 เท่า (แนะนำ)</option><option value="3">3 เท่า</option></select></div>
-      <div class="row"><button class="btn primary" id="btn-png" type="button">บันทึกภาพ PNG</button><button class="btn" id="btn-fit" type="button">จัดให้เห็นทั้งสนาม</button></div>
+      <div class="row"><button class="btn primary" id="btn-png" type="button" title="บันทึกภาพหน้าจอปัจจุบัน">บันทึกภาพ PNG</button><button class="btn" id="btn-fit" type="button" title="ซูมและจัดให้เห็นทั้งหมด">จัดให้เห็นทั้งสนาม</button></div>
       <p class="hint">ภาพที่ได้คือส่วนที่เห็นบนแผนที่ตอนนี้ ซูมและจัดมุมก่อนกดบันทึก</p>
     </div>
     <div class="group">
@@ -235,7 +241,7 @@ table.sections input { width: 100%; padding: 4px 5px; }
     <div class="group">
       <h2>วาดเส้นฟรีแฮนด์</h2>
       <p class="hint">คลิกและลากเพื่อวาดเส้นอิสระบนแผนที่</p>
-      <div class="row"><button class="btn primary" id="btn-draw-line" type="button" aria-pressed="false">วาดเส้น</button></div>
+      <div class="row"><button class="btn primary" id="btn-draw-line" type="button" aria-pressed="false" title="คลิกแล้วคลิกบนแผนที่เพื่อวาดเส้น">วาดเส้น</button></div>
       <div class="row"><label for="in-draw-color">สีเส้น</label>
         <select id="in-draw-color">
           <option value="#ff0000">แดง</option>
@@ -251,14 +257,14 @@ table.sections input { width: 100%; padding: 4px 5px; }
     <div class="group">
       <h2>วัดระยะทาง</h2>
       <p class="hint">คลิกบนแผนที่เพื่อวัดระยะทางระหว่างจุด</p>
-      <div class="row"><button class="btn primary" id="btn-measure" type="button" aria-pressed="false">วัดระยะ</button></div>
+      <div class="row"><button class="btn primary" id="btn-measure" type="button" aria-pressed="false" title="คลิกหลายจุดเพื่อวัดระยะทางรวม">วัดระยะ</button></div>
       <div class="row"><span class="hint" id="measure-result">ระยะทาง: -</span></div>
       <div class="row"><button class="btn small" id="btn-clear-measure" type="button">ล้างการวัด</button></div>
     </div>
     <div class="group">
       <h2>มาร์กเกอร์กำหนดเอง</h2>
       <p class="hint">คลิกเพื่อวางมาร์กเกอร์ปกติ และเพิ่มข้อความ</p>
-      <div class="row"><button class="btn primary" id="btn-marker" type="button" aria-pressed="false">วางมาร์กเกอร์</button></div>
+      <div class="row"><button class="btn primary" id="btn-marker" type="button" aria-pressed="false" title="วางมาร์กเกอร์พร้อมข้อความ">วางมาร์กเกอร์</button></div>
       <div class="row"><label for="in-marker-text">ข้อความ</label><input id="in-marker-text" type="text" placeholder="เช่น จุดนัดพบ"></div>
     </div>
   </section>
