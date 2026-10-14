@@ -3,6 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#d6311f">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Map Editor">
 <title>Map Editor - เครื่องมือแก้ไขแผนที่และสร้างแผนผัง</title>
 <meta name="description" content="เครื่องมือแก้ไขแผนที่และสร้างแผนผัง พร้อมแผนที่ดาวเทียม วาดเส้น วัดระยะ วางมาร์กเกอร์ และส่งออกภาพ">
 <meta name="keywords" content="map editor, แก้ไขแผนที่, แผนผัง, map drawing, map annotation, GPX editor, route planning">
@@ -1302,6 +1307,19 @@ if (firstRun && road) {
   const [lat, lng] = proj.toLL(c0);
   state.items.push({ id: nextId++, type: "start", lat, lng, rot: Math.round(screenAngle([-t0[1], t0[0]])), label: "START" });
   renderItems(); persist();
+}
+
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(registration => {
+        console.log('Service Worker registered: ', registration);
+      })
+      .catch(error => {
+        console.log('Service Worker registration failed: ', error);
+      });
+  });
 }
 </script>
 </body>

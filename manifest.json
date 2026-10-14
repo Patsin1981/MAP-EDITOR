@@ -1,0 +1,26 @@
+{
+  "name": "Map Editor - เครื่องมือแก้ไขแผนที่",
+  "short_name": "Map Editor",
+  "description": "เครื่องมือแก้ไขแผนที่และสร้างแผนผัง พร้อมแผนที่ดาวเทียม",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#121514",
+  "theme_color": "#d6311f",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='5' y='15' width='30' height='10' fill='%23d6311f' rx='2'/%3E%3Crect x='5' y='15' width='5' height='10' fill='%23fff'/%3E%3Crect x='15' y='15' width='5' height='10' fill='%23fff'/%3E%3Crect x='25' y='15' width='5' height='10' fill='%23fff'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect x='5' y='15' width='30' height='10' fill='%23d6311f' rx='2'/%3E%3Crect x='5' y='15' width='5' height='10' fill='%23fff'/%3E%3Crect x='15' y='15' width='5' height='10' fill='%23fff'/%3E%3Crect x='25' y='15' width='5' height='10' fill='%23fff'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "lang": "th"
+}
