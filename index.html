@@ -1,0 +1,1145 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Course Builder - เครื่องมือสร้างแผนผังสนามแข่งขัน</title>
+<meta name="description" content="เครื่องมือสร้างแผนผังสนามแข่งขันจักรยาน/รถ พร้อมแผนที่ดาวเทียม ปรับขอบถนน วางอุปกรณ์ และส่งออกภาพสำหรับ presentation">
+<meta name="keywords" content="course builder, แผนผังสนาม, สนามแข่งขัน, race course, circuit layout, GPX editor, cycling map">
+<meta name="author" content="Course Builder">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="Course Builder - เครื่องมือสร้างแผนผังสนามแข่งขัน">
+<meta property="og:description" content="เครื่องมือสร้างแผนผังสนามแข่งขันจักรยาน/รถ พร้อมแผนที่ดาวเทียม ปรับขอบถนน วางอุปกรณ์ และส่งออกภาพ">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="th_TH">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Course Builder - เครื่องมือสร้างแผนผังสนามแข่งขัน">
+<meta name="twitter:description" content="เครื่องมือสร้างแผนผังสนามแข่งขันจักรยาน/รถ พร้อมแผนที่ดาวเทียม">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect x='5' y='15' width='30' height='10' fill='%23d6311f' rx='2'/><rect x='5' y='15' width='5' height='10' fill='%23fff'/><rect x='15' y='15' width='5' height='10' fill='%23fff'/><rect x='25' y='15' width='5' height='10' fill='%23fff'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+/* Layout: full-bleed satellite map + docked control rail (right on desktop, bottom sheet on phone) */
+:root {
+  --bg: #f3f4f1;
+  --panel: #fbfbf9;
+  --fg: #1d2120;
+  --muted: #5d6662;
+  --line: #d6dbd7;
+  --accent: #d6311f;        /* kerb red */
+  --accent-fg: #ffffff;
+  --field: #ffffff;
+  --sel: #f2b705;           /* selection / marshal yellow */
+  --font-display: "Chakra Petch", "IBM Plex Sans Thai", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans Thai", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #121514; --panel: #1a1e1d; --fg: #e7ebe8; --muted: #9aa49f; --line: #2e3533;
+    --accent: #ef4a36; --accent-fg: #ffffff; --field: #222826; --sel: #f2c230; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--fg); font: 14px/1.5 var(--font-body); display: grid; grid-template-columns: 1fr 340px; }
+#map { height: 100%; min-height: 0; background: #20262a; }
+#map.placing { cursor: crosshair; }
+aside { background: var(--panel); border-left: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+.brand { padding: 14px 16px 10px; border-bottom: 1px solid var(--line); }
+.brand h1 { margin: 0; font: 700 20px/1.1 var(--font-display); letter-spacing: .02em; text-wrap: balance; }
+.brand .meta { margin-top: 4px; font: 12px var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.tabs { display: flex; border-bottom: 1px solid var(--line); }
+.tabs button { flex: 1; padding: 10px 4px; border: 0; background: none; color: var(--muted); font: 600 13px var(--font-display); letter-spacing: .06em; text-transform: uppercase; cursor: pointer; border-bottom: 3px solid transparent; }
+.tabs button[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); }
+.pane { overflow-y: auto; padding: 14px 16px 24px; display: flex; flex-direction: column; gap: 16px; min-height: 0; flex: 1; }
+.group { display: flex; flex-direction: column; gap: 8px; }
+.group > h2 { margin: 0; font: 600 12px var(--font-display); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.row label { flex: 1; min-width: 0; }
+.unit { font: 12px var(--font-mono); color: var(--muted); min-width: 48px; text-align: right; font-variant-numeric: tabular-nums; }
+input[type=range] { flex: 1.4; min-width: 120px; accent-color: var(--accent); }
+input[type=number], input[type=text], select {
+  font: 13px var(--font-body); color: var(--fg); background: var(--field);
+  border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; min-width: 0;
+}
+input[type=number] { width: 64px; font-family: var(--font-mono); }
+.btn { font: 600 13px var(--font-body); padding: 8px 12px; border-radius: 4px; border: 1px solid var(--line); background: var(--field); color: var(--fg); cursor: pointer; transition: all 0.2s ease; }
+.btn:hover { border-color: var(--muted); transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.btn:active { transform: translateY(0); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+.btn.primary:hover { background: #e6402e; border-color: #e6402e; }
+.btn.small { padding: 4px 8px; font-size: 12px; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--sel); outline-offset: 1px; }
+.hint { margin: 0; font-size: 12px; color: var(--muted); }
+table.sections { width: 100%; border-collapse: collapse; font-size: 12px; }
+table.sections th { text-align: left; font: 500 11px var(--font-mono); color: var(--muted); padding: 2px 2px 4px; }
+table.sections td { padding: 2px; }
+table.sections input { width: 100%; padding: 4px 5px; }
+.palette { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.palette button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px 5px; border: 1px solid var(--line); border-radius: 4px; background: var(--field); color: var(--fg); font-size: 11px; line-height: 1.2; cursor: pointer; }
+.palette button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.palette svg { width: 30px; height: 30px; }
+.selbox { border: 1px solid var(--line); border-radius: 4px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px); background: var(--fg); color: var(--bg); padding: 8px 14px; border-radius: 4px; font-size: 13px; z-index: 2000; max-width: calc(100% - 32px); opacity: 0; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.toast:not([hidden]) { opacity: 1; transform: translateX(-50%) translateY(0); }
+.eq-icon { background: none; border: 0; }
+.eq-icon .rot { width: 100%; height: 100%; transform-origin: 50% 50%; }
+.eq-icon.selected .rot { filter: drop-shadow(0 0 2px var(--sel)) drop-shadow(0 0 4px var(--sel)); }
+.edge-handle { background: none; border: 0; }
+.edge-handle span { display: block; width: 14px; height: 14px; border-radius: 50%; background: #ffffff; border: 2px solid #1d2120; box-shadow: 0 0 0 1px rgba(255,255,255,.6); cursor: grab; }
+.edge-handle.moved span { background: #d6311f; border-color: #ffffff; }
+.edge-handle:active span { cursor: grabbing; transform: scale(1.25); }
+.km-tag { background: rgba(20,24,23,.82); color: #fff; font: 500 11px var(--font-mono); padding: 1px 4px; border-radius: 3px; white-space: nowrap; border: 0; }
+@media (max-width: 760px) {
+  body { grid-template-columns: 1fr; grid-template-rows: 55% 45%; }
+  aside { border-left: 0; border-top: 1px solid var(--line); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.pane { animation: fadeIn 0.3s ease; }
+.brand h1 { animation: slideUp 0.4s ease; }
+</style>
+</head>
+<body>
+<div id="map" aria-label="แผนที่ภาพดาวเทียม"></div>
+<aside>
+  <div class="brand">
+    <h1 id="course-title-view">พีระ</h1>
+    <div class="meta" id="meta">กำลังโหลดเส้นทาง…</div>
+    <div class="row" style="margin-top: 8px;">
+      <button class="btn small" id="btn-undo" type="button" disabled title="ย้อนกลับ (Ctrl+Z)">↩ ย้อนกลับ</button>
+      <button class="btn small" id="btn-redo" type="button" disabled title="ทำซ้ำ (Ctrl+Y)">↪ ทำซ้ำ</button>
+    </div>
+  </div>
+  <div class="tabs" role="tablist">
+    <button id="tab-road" role="tab" aria-selected="true" data-pane="pane-road">ถนน</button>
+    <button id="tab-equip" role="tab" aria-selected="false" data-pane="pane-equip">อุปกรณ์</button>
+    <button id="tab-export" role="tab" aria-selected="false" data-pane="pane-export">ส่งออก</button>
+    <button id="tab-settings" role="tab" aria-selected="false" data-pane="pane-settings">ตั้งค่า</button>
+  </div>
+
+  <section class="pane" id="pane-road">
+    <div class="group">
+      <h2>ลากปรับขอบถนน</h2>
+      <div class="row"><button class="btn primary" id="btn-edit-edges" type="button" aria-pressed="false">เริ่มลากปรับขอบ</button></div>
+      <div class="row">
+        <label><input type="radio" name="edge-mode" id="mode-one" value="one" checked> ขยับขอบเดียว</label>
+        <label><input type="radio" name="edge-mode" id="mode-both" value="both"> ขยับทั้งถนน</label>
+      </div>
+      <div class="row"><label for="in-hstep">จุดจับทุก</label>
+        <select id="in-hstep"><option value="10">10 ม.</option><option value="20" selected>20 ม.</option><option value="40">40 ม.</option></select></div>
+      <p class="hint" id="edge-status">ลากจุดบนเส้นขอบเข้าในหรือออกนอก จุดจะเลื่อนได้แค่แนวขวางถนน ดับเบิลคลิกที่จุดเพื่อคืนค่าเดิม จุดสีแดงคือจุดที่ปรับแล้ว</p>
+      <div class="row"><button class="btn small" id="btn-reset-edges" type="button">คืนค่าการลากทั้งหมด</button></div>
+      <div class="row" id="reset-edges-confirm" hidden><span class="hint">ล้างการปรับขอบทั้งหมดแน่ใจไหม</span><button class="btn small primary" id="btn-reset-yes" type="button">ล้าง</button><button class="btn small" id="btn-reset-no" type="button">ยกเลิก</button></div>
+    </div>
+    <div class="group">
+      <h2>ขนาดถนน</h2>
+      <div class="row"><label for="in-width">ความกว้างถนน</label><input id="in-width" type="range" min="2" max="20" step="0.5" value="8"><span class="unit" id="out-width">8.0 ม.</span></div>
+      <div class="row"><label for="in-shift">เลื่อนทั้งเส้น (+ซ้าย / −ขวา)</label><input id="in-shift" type="range" min="-8" max="8" step="0.25" value="0"><span class="unit" id="out-shift">0.00 ม.</span></div>
+      <div class="row"><label for="in-smooth">ความเรียบของเส้น</label><input id="in-smooth" type="range" min="0" max="25" step="1" value="10"><span class="unit" id="out-smooth">10 ม.</span></div>
+      <p class="hint">ซ้าย/ขวานับตามทิศที่รถวิ่ง ความเรียบสูงจะกรอง GPS ที่แกว่งได้มาก แต่โค้งแคบจะถูกปาดมุม</p>
+    </div>
+    <div class="group">
+      <h2>ปรับเป็นช่วง</h2>
+      <p class="hint">ใช้เมื่อเส้นขอบไม่ตรงกับถนนจริงบางช่วง ระบุระยะเป็นเมตรจากจุดเริ่ม คลิกบนแผนที่เพื่อดูระยะ ณ จุดนั้น</p>
+      <table class="sections">
+        <thead><tr><th>จาก ม.</th><th>ถึง ม.</th><th>เลื่อน ม.</th><th>กว้าง ม.</th><th></th></tr></thead>
+        <tbody id="sec-body"></tbody>
+      </table>
+      <div class="row"><button class="btn small" id="btn-add-sec" type="button">+ เพิ่มช่วง</button><span class="hint" id="click-info"></span></div>
+    </div>
+    <div class="group">
+      <h2>รูปแบบเส้นขอบ</h2>
+      <div class="row"><label for="in-style">ลายเส้น</label>
+        <select id="in-style">
+          <option value="kerb">ขาว-แดง (kerb)</option>
+          <option value="white">ขาวทึบ</option>
+          <option value="yellow">เหลืองทึบ</option>
+          <option value="tape">เทปกั้น ขาว-แดงเส้นบาง</option>
+        </select></div>
+      <div class="row"><label for="in-lw">ความหนาเส้น</label><input id="in-lw" type="range" min="1" max="8" step="0.5" value="3.5"><span class="unit" id="out-lw">3.5 px</span></div>
+      <div class="row"><label><input id="in-center" type="checkbox"> แสดงเส้น GPX กลางถนน</label></div>
+      <div class="row"><label><input id="in-km" type="checkbox" checked> แสดงระยะทุก 100 ม.</label></div>
+    </div>
+  </section>
+
+  <section class="pane" id="pane-equip" hidden>
+    <div class="group">
+      <h2>วางทีละชิ้น</h2>
+      <p class="hint">เลือกอุปกรณ์แล้วคลิกบนแผนที่ ลากเพื่อย้าย คลิกที่ชิ้นเพื่อหมุนหรือลบ</p>
+      <div class="palette" id="palette"></div>
+      <div class="row"><label><input id="in-snap" type="checkbox" checked> ชิดขอบถนนและหมุนตามแนว</label></div>
+      <div class="row"><label for="in-isize">ขนาดสัญลักษณ์</label><input id="in-isize" type="range" min="14" max="64" step="1" value="28"><span class="unit" id="out-isize">28 px</span></div>
+    </div>
+    <div class="group">
+      <h2>วางเรียงตามแนวขอบ</h2>
+      <div class="row"><label for="in-l-type">อุปกรณ์</label><select id="in-l-type"></select></div>
+      <div class="row"><label for="in-l-side">ฝั่ง</label><select id="in-l-side"><option value="L">ซ้าย</option><option value="R">ขวา</option><option value="B">ทั้งสองฝั่ง</option></select></div>
+      <div class="row">
+        <label for="in-l-from">จาก</label><input id="in-l-from" type="number" value="0" step="10">
+        <label for="in-l-to">ถึง</label><input id="in-l-to" type="number" value="100" step="10">
+        <label for="in-l-gap">ทุก</label><input id="in-l-gap" type="number" value="5" step="1" min="1">
+      </div>
+      <div class="row"><label for="in-l-out">ระยะออกจากขอบ</label><input id="in-l-out" type="number" value="1" step="0.5"><span class="unit">ม.</span></div>
+      <div class="row"><button class="btn" id="btn-line" type="button">วางเรียง</button></div>
+    </div>
+    <div class="group" id="sel-group" hidden>
+      <h2>ชิ้นที่เลือก</h2>
+      <div class="selbox">
+        <div class="row"><span id="sel-name"></span><span class="unit" id="sel-km"></span></div>
+        <div class="row"><label for="in-rot">หมุน</label><input id="in-rot" type="range" min="0" max="359" step="1" value="0"><span class="unit" id="out-rot">0°</span></div>
+        <div class="row"><label for="in-label">ป้ายข้อความ</label><input id="in-label" type="text" placeholder="เช่น CP1"></div>
+        <div class="row"><button class="btn small" id="btn-dup" type="button">ทำซ้ำ</button><button class="btn small" id="btn-del" type="button">ลบชิ้นนี้</button></div>
+      </div>
+    </div>
+    <div class="group">
+      <div class="row"><span class="hint" id="eq-count"></span><button class="btn small" id="btn-clear" type="button">ล้างอุปกรณ์ทั้งหมด</button></div>
+      <div class="row" id="clear-confirm" hidden><span class="hint">ลบอุปกรณ์ทั้งหมดแน่ใจไหม</span><button class="btn small primary" id="btn-clear-yes" type="button">ลบ</button><button class="btn small" id="btn-clear-no" type="button">ยกเลิก</button></div>
+    </div>
+  </section>
+
+  <section class="pane" id="pane-export" hidden>
+    <div class="group">
+      <h2>ภาพสำหรับ presentation</h2>
+      <div class="row"><label for="in-title">หัวข้อบนภาพ</label><input id="in-title" type="text" value="พีระ"></div>
+      <div class="row"><label for="in-sub">บรรทัดรอง</label><input id="in-sub" type="text" value="ผังสนามแข่งขัน"></div>
+      <div class="row"><label><input id="in-legend" type="checkbox" checked> ใส่คำอธิบายสัญลักษณ์</label></div>
+      <div class="row"><label for="in-scale">ความละเอียด</label><select id="in-scale"><option value="1">เท่าหน้าจอ</option><option value="2" selected>2 เท่า (แนะนำ)</option><option value="3">3 เท่า</option></select></div>
+      <div class="row"><button class="btn primary" id="btn-png" type="button">บันทึกภาพ PNG</button><button class="btn" id="btn-fit" type="button">จัดให้เห็นทั้งสนาม</button></div>
+      <p class="hint">ภาพที่ได้คือส่วนที่เห็นบนแผนที่ตอนนี้ ซูมและจัดมุมก่อนกดบันทึก</p>
+    </div>
+    <div class="group">
+      <h2>ไฟล์งาน</h2>
+      <p class="hint">บันทึกค่าถนนและอุปกรณ์ทั้งหมดเป็นไฟล์ไว้เปิดแก้ต่อ</p>
+      <div class="row"><button class="btn" id="btn-save" type="button">บันทึกไฟล์งาน</button><button class="btn" id="btn-open" type="button">เปิดไฟล์งาน</button></div>
+      <div class="row"><button class="btn" id="btn-share" type="button">🔗 แชร์ลิงก์</button><button class="btn" id="btn-gpx" type="button">เปิด GPX เส้นใหม่</button></div>
+      <input id="file-json" type="file" accept=".json,application/json" hidden>
+      <input id="file-gpx" type="file" accept=".gpx" hidden>
+    </div>
+  </section>
+
+  <section class="pane" id="pane-settings" hidden>
+    <div class="group">
+      <h2>การตั้งค่าแอป</h2>
+      <div class="row"><label><input id="in-autosave" type="checkbox" checked> บันทึกอัตโนมัติ (Auto-save)</label></div>
+      <p class="hint">บันทึกข้อมูลไป localStorage ทุกครั้งที่มีการเปลี่ยนแปลง</p>
+    </div>
+    <div class="group">
+      <h2>ข้อมูลแอป</h2>
+      <p class="hint">เวอร์ชัน: 1.0</p>
+      <p class="hint">ฟอนต์: Chakra Petch, IBM Plex Sans Thai</p>
+      <p class="hint">แผนที่: Esri/Maxar (Leaflet)</p>
+    </div>
+    <div class="group">
+      <h2>ล้างข้อมูล</h2>
+      <p class="hint">ล้างข้อมูลที่บันทึกไว้ใน localStorage</p>
+      <div class="row"><button class="btn" id="btn-clear-storage" type="button">ล้างข้อมูลที่บันทึก</button></div>
+      <div class="row" id="clear-storage-confirm" hidden><span class="hint">ล้างข้อมูลแน่ใจไหม</span><button class="btn small primary" id="btn-clear-storage-yes" type="button">ล้าง</button><button class="btn small" id="btn-clear-storage-no" type="button">ยกเลิก</button></div>
+    </div>
+  </section>
+</aside>
+<div class="toast" id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+"use strict";
+/* ===== ข้อมูลเส้นทางเริ่มต้น (จากไฟล์ GPX ที่ส่งมา) ===== */
+const DEFAULT_TRACK = [[12.91993738,101.01017107],[12.91991532,101.01030452],[12.91987387,101.01044255],[12.91983828,101.01057832],[12.91981287,101.01071488],[12.91979623,101.01085935],[12.91977333,101.01099742],[12.91974527,101.01113447],[12.9197193,101.01125657],[12.91971733,101.0113561],[12.91974238,101.01146297],[12.9197874,101.01154633],[12.91989588,101.01162283],[12.91999867,101.01165012],[12.92012573,101.01165595],[12.92024443,101.01163848],[12.92036642,101.01159288],[12.92047877,101.0115342],[12.92057658,101.01147208],[12.92066043,101.01139485],[12.92073557,101.01129823],[12.92080092,101.01119477],[12.92084728,101.01110723],[12.92090797,101.01102717],[12.92100955,101.01096417],[12.92107725,101.01088613],[12.92113347,101.01081358],[12.92117828,101.01071885],[12.92120037,101.01059987],[12.92124357,101.01051228],[12.92131882,101.0104124],[12.92139372,101.01030175],[12.92147948,101.01018688],[12.92156232,101.010085],[12.92163682,101.01000682],[12.92173837,101.0099431],[12.92182805,101.00996267],[12.92187763,101.0100419],[12.92190358,101.01013425],[12.92193722,101.01027233],[12.92194913,101.01039308],[12.92193375,101.01052502],[12.92190792,101.01064682],[12.92186937,101.01075862],[12.92183195,101.01086175],[12.92183658,101.0109539],[12.92180743,101.01105855],[12.92176762,101.01115373],[12.92170982,101.01124612],[12.92165438,101.0113408],[12.92158722,101.01143795],[12.92151482,101.01153525],[12.92145603,101.01164015],[12.92141,101.0117365],[12.92133267,101.0118112],[12.92123088,101.0118252],[12.92113505,101.0119085],[12.92107832,101.01199683],[12.9210224,101.01209855],[12.9209661,101.012188],[12.92092102,101.0122692],[12.92085938,101.0123414],[12.92082623,101.01244252],[12.92080155,101.01254352],[12.92069722,101.01263208],[12.92058125,101.01266027],[12.92048437,101.0126814],[12.92037702,101.01268445],[12.92024127,101.0126813],[12.92010493,101.01264657],[12.92000437,101.0126214],[12.91990603,101.01265477],[12.9198076,101.01268138],[12.91970385,101.01264895],[12.91961087,101.01255342],[12.9195563,101.01246067],[12.9194849,101.01235928],[12.91942072,101.01225743],[12.9193594,101.0121575],[12.91932828,101.01206757],[12.91929452,101.01197548],[12.91924503,101.01189098],[12.9191573,101.01186733],[12.91907392,101.0118069],[12.91903288,101.01171467],[12.91899475,101.01161315],[12.91898032,101.01152202],[12.91897638,101.01142018],[12.91898568,101.01131337],[12.91901937,101.01120285],[12.91908617,101.01112133],[12.91911668,101.01101387],[12.91914985,101.01091163],[12.919197,101.01076305],[12.9192299,101.01067037],[12.9192795,101.01053653],[12.91932172,101.01040705],[12.9193556,101.01028665],[12.9193809,101.01018258],[12.91942513,101.010027],[12.91943962,101.00990332],[12.91942412,101.00980098],[12.91943638,101.00970722],[12.9195054,101.00957512],[12.91955548,101.00945133],[12.91958442,101.00935108],[12.91961852,101.0092626],[12.91966768,101.00915287],[12.91964065,101.009052],[12.91961557,101.00893788],[12.91970142,101.00890158],[12.91978843,101.00897762],[12.91984475,101.00906628],[12.91990043,101.00916748],[12.91996645,101.0092707]];
+const DEFAULT_NAME = "พีระ";
+
+/* ===== GEOMETRY (pure functions) ===== */
+const R_EARTH = 6378137;
+function makeProjection(origin) {
+  const k = Math.PI / 180, cos0 = Math.cos(origin[0] * k);
+  return {
+    toXY: ([lat, lon]) => [(lon - origin[1]) * k * R_EARTH * cos0, (lat - origin[0]) * k * R_EARTH],
+    toLL: ([x, y]) => [origin[0] + y / (k * R_EARTH), origin[1] + x / (k * R_EARTH * cos0)],
+  };
+}
+const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+
+// ตัดจุดที่ซ้อนกัน (รถจอด / GPS แกว่งอยู่กับที่)
+function dedupe(pts, minGap) {
+  const out = [pts[0]];
+  for (let i = 1; i < pts.length; i++) if (dist(pts[i], out[out.length - 1]) >= minGap) out.push(pts[i]);
+  return out;
+}
+// Catmull-Rom แบบ centripetal ให้เส้นโค้งผ่านจุด GPS อย่างนุ่มนวล แล้วแบ่งทุก ~step เมตร
+function catmullRom(pts, step) {
+  const out = [];
+  const P = [pts[0], ...pts, pts[pts.length - 1]];
+  for (let i = 1; i < P.length - 2; i++) {
+    const p0 = P[i - 1], p1 = P[i], p2 = P[i + 1], p3 = P[i + 2];
+    const t0 = 0, t1 = t0 + Math.pow(dist(p0, p1) || 1e-6, 0.5), t2 = t1 + Math.pow(dist(p1, p2) || 1e-6, 0.5), t3 = t2 + Math.pow(dist(p2, p3) || 1e-6, 0.5);
+    const n = Math.max(1, Math.ceil(dist(p1, p2) / step));
+    for (let s = 0; s < n; s++) {
+      const t = t1 + (t2 - t1) * (s / n);
+      const lerp = (a, b, ta, tb) => { const w = (tb - ta) || 1e-9; return [a[0] * (tb - t) / w + b[0] * (t - ta) / w, a[1] * (tb - t) / w + b[1] * (t - ta) / w]; };
+      const A1 = lerp(p0, p1, t0, t1), A2 = lerp(p1, p2, t1, t2), A3 = lerp(p2, p3, t2, t3);
+      const B1 = lerp(A1, A2, t0, t2), B2 = lerp(A2, A3, t1, t3);
+      out.push(lerp(B1, B2, t1, t2));
+    }
+  }
+  out.push(pts[pts.length - 1]);
+  return out;
+}
+// แบ่งเส้นใหม่ให้ห่างเท่ากันทุก step เมตร
+function resample(pts, step) {
+  const out = [pts[0]];
+  let carry = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i], seg = dist(a, b);
+    let d = step - carry;
+    while (d <= seg) { const t = d / seg; out.push([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]); d += step; }
+    carry = seg - (d - step);
+  }
+  const last = pts[pts.length - 1];
+  if (dist(out[out.length - 1], last) > step * 0.3) out.push(last);
+  return out;
+}
+// ค่าเฉลี่ยเคลื่อนที่ 3 รอบ (ใกล้เคียง Gaussian) ปลายเส้นคงที่
+function smooth(pts, windowM, step) {
+  const half = Math.round(windowM / step / 2);
+  if (half < 1) return pts.slice();
+  let cur = pts;
+  for (let pass = 0; pass < 3; pass++) {
+    const next = cur.map((p, i) => {
+      const h = Math.min(half, i, cur.length - 1 - i);
+      let sx = 0, sy = 0;
+      for (let j = i - h; j <= i + h; j++) { sx += cur[j][0]; sy += cur[j][1]; }
+      return [sx / (2 * h + 1), sy / (2 * h + 1)];
+    });
+    cur = next;
+  }
+  return cur;
+}
+function cumulative(pts) {
+  const s = [0];
+  for (let i = 1; i < pts.length; i++) s.push(s[i - 1] + dist(pts[i - 1], pts[i]));
+  return s;
+}
+function tangents(pts) {
+  return pts.map((p, i) => {
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+    const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1;
+    return [dx / L, dy / L];
+  });
+}
+// ค่าเลื่อนและความกว้าง ณ ระยะ s โดยไล่ค่าเข้า/ออกช่วง (ramp) ให้เส้นไม่หักกระชาก
+function profileAt(s, base, sections, ramp) {
+  let shift = base.shift, width = base.width;
+  for (const sec of sections) {
+    const a = Math.min(sec.from, sec.to), b = Math.max(sec.from, sec.to);
+    let w;
+    if (s <= a - ramp || s >= b + ramp) w = 0;
+    else if (s < a) w = (s - (a - ramp)) / ramp;
+    else if (s > b) w = ((b + ramp) - s) / ramp;
+    else w = 1;
+    if (w <= 0) continue;
+    if (Number.isFinite(sec.shift)) shift += sec.shift * w;
+    if (Number.isFinite(sec.width) && sec.width > 0) width += (sec.width - base.width) * w;
+  }
+  return { shift, width };
+}
+function segIntersect(p1, p2, p3, p4) {
+  const d = (p2[0] - p1[0]) * (p4[1] - p3[1]) - (p2[1] - p1[1]) * (p4[0] - p3[0]);
+  if (Math.abs(d) < 1e-12) return null;
+  const t = ((p3[0] - p1[0]) * (p4[1] - p3[1]) - (p3[1] - p1[1]) * (p4[0] - p3[0])) / d;
+  const u = ((p3[0] - p1[0]) * (p2[1] - p1[1]) - (p3[1] - p1[1]) * (p2[0] - p1[0])) / d;
+  if (t > 0 && t < 1 && u > 0 && u < 1) return [p1[0] + t * (p2[0] - p1[0]), p1[1] + t * (p2[1] - p1[1])];
+  return null;
+}
+// ตัดห่วงที่เกิดจากเส้นขอบฝั่งในโค้งพับไขว้ตัวเอง (ดูเฉพาะช่วงใกล้ ๆ ไม่ตัดจุดที่สนามวนมาตัดกันจริง)
+function removeLoops(pts, windowPts) {
+  const out = [];
+  let i = 0;
+  while (i < pts.length - 1) {
+    out.push(pts[i]);
+    let cut = null;
+    for (let j = Math.min(pts.length - 2, i + windowPts); j >= i + 2; j--) {
+      const x = segIntersect(pts[i], pts[i + 1], pts[j], pts[j + 1]);
+      if (x) { cut = { j, x }; break; }
+    }
+    if (cut) { out.push(cut.x); i = cut.j + 1; } else i++;
+  }
+  out.push(pts[pts.length - 1]);
+  return out;
+}
+// สร้างถนนจาก track: คืนเส้นกลาง เส้นขอบซ้าย/ขวา และระยะสะสม
+function buildRoad(trackXY, opts) {
+  const STEP = 1;
+  let c = dedupe(trackXY, 1.5);
+  if (c.length < 2) return null;
+  c = resample(catmullRom(c, STEP), STEP);
+  c = smooth(c, opts.smooth, STEP);
+  const s = cumulative(c), t = tangents(c);
+  const adjL = opts.adjL || (() => 0), adjR = opts.adjR || (() => 0);
+  const left = [], right = [], prof = [];
+  for (let i = 0; i < c.length; i++) {
+    const p = profileAt(s[i], opts, opts.sections, 6);
+    p.aL = adjL(s[i]); p.aR = adjR(s[i]);   // ระยะที่ลากขอบออกนอก (+) / เข้าใน (−)
+    const n = [-t[i][1], t[i][0]];   // normal ชี้ไปทางซ้ายของทิศวิ่ง
+    const hw = p.width / 2, offL = p.shift + hw + p.aL, offR = p.shift - hw - p.aR;
+    left.push([c[i][0] + n[0] * offL, c[i][1] + n[1] * offL]);
+    right.push([c[i][0] + n[0] * offR, c[i][1] + n[1] * offR]);
+    prof.push(p);
+  }
+  const win = Math.max(20, Math.round(opts.width * 6));
+  return { center: c, s, t, prof, left: removeLoops(left, win), right: removeLoops(right, win), length: s[s.length - 1] };
+}
+// โปรไฟล์การลากขอบ: ค่า d ที่จุดจับทุก step เมตร (เก็บเฉพาะจุดที่ไม่เป็น 0) ต่อกันด้วย Catmull-Rom ให้เส้นโค้งนุ่ม
+function makeAdjFn(knots, step) {
+  const keys = Object.keys(knots || {});
+  if (!keys.length) return () => 0;
+  const v = (k) => knots[String(k * step)] || 0;
+  return (s) => {
+    const k = Math.floor(s / step), u = s / step - k;
+    const p0 = v(k - 1), p1 = v(k), p2 = v(k + 1), p3 = v(k + 2);
+    if (!p0 && !p1 && !p2 && !p3) return 0;
+    return 0.5 * ((2 * p1) + (-p0 + p2) * u + (2 * p0 - 5 * p1 + 4 * p2 - p3) * u * u + (-p0 + 3 * p1 - 3 * p2 + p3) * u * u * u);
+  };
+}
+// เปลี่ยนระยะห่างจุดจับโดยคงรูปเส้นเดิมไว้
+function resampleKnots(knots, oldStep, newStep, length) {
+  const f = makeAdjFn(knots, oldStep), out = {};
+  for (let s = 0; s <= length + newStep; s += newStep) { const d = f(s); if (Math.abs(d) >= 0.02) out[String(s)] = Math.round(d * 100) / 100; }
+  return out;
+}
+function indexAtS(sArr, s) {
+  let lo = 0, hi = sArr.length - 1;
+  while (lo < hi) { const mid = (lo + hi) >> 1; if (sArr[mid] < s) lo = mid + 1; else hi = mid; }
+  return lo;
+}
+function nearestOnPolyline(pts, q) {
+  let best = { d: Infinity, i: 0 };
+  for (let i = 0; i < pts.length; i++) { const d = dist(pts[i], q); if (d < best.d) best = { d, i }; }
+  return best;
+}
+/* ===== END GEOMETRY ===== */
+
+/* ===== EQUIPMENT ICONS (มุมมองจากด้านบน แนวยาวตามแกนนอน) ===== */
+const EQUIP = {
+  hay:      { name: "กองฟาง", svg: '<rect x="5" y="12" width="30" height="16" rx="3" fill="#e2b33c" stroke="#7a5a12" stroke-width="2"/><path d="M9 16h22M9 20h22M9 24h22" stroke="#9c7419" stroke-width="1.4"/>' },
+  tyre:     { name: "แบริเออร์ยาง", svg: '<g fill="#1b1b1b" stroke="#bdbdbd" stroke-width="1.5"><circle cx="9" cy="20" r="6.5"/><circle cx="20" cy="20" r="6.5"/><circle cx="31" cy="20" r="6.5"/></g><g fill="#5a5a5a"><circle cx="9" cy="20" r="2.4"/><circle cx="20" cy="20" r="2.4"/><circle cx="31" cy="20" r="2.4"/></g>' },
+  concrete: { name: "แบริเออร์ปูน", svg: '<rect x="3" y="14" width="34" height="12" rx="1.5" fill="#b9bcb8" stroke="#55595a" stroke-width="2"/><path d="M3 20h34" stroke="#7d8180" stroke-width="1.4"/>' },
+  water:    { name: "แบริเออร์น้ำ", svg: '<rect x="3" y="14" width="17" height="12" rx="2" fill="#e23a2b" stroke="#7b1a12" stroke-width="1.6"/><rect x="20" y="14" width="17" height="12" rx="2" fill="#f4f4f4" stroke="#7b1a12" stroke-width="1.6"/>' },
+  cone:     { name: "กรวย", svg: '<circle cx="20" cy="20" r="11" fill="#f26b1d" stroke="#7a2e05" stroke-width="1.6"/><circle cx="20" cy="20" r="6.5" fill="#ffffff"/><circle cx="20" cy="20" r="3.2" fill="#f26b1d"/>' },
+  start:    { name: "Start / Finish", svg: '<rect x="2" y="15" width="36" height="10" fill="#fff" stroke="#111" stroke-width="1.5"/><g fill="#111"><rect x="2" y="15" width="4.5" height="5"/><rect x="11" y="15" width="4.5" height="5"/><rect x="20" y="15" width="4.5" height="5"/><rect x="29" y="15" width="4.5" height="5"/><rect x="6.5" y="20" width="4.5" height="5"/><rect x="15.5" y="20" width="4.5" height="5"/><rect x="24.5" y="20" width="4.5" height="5"/><rect x="33.5" y="20" width="4.5" height="5"/></g>', fixedUp: false },
+  cp:       { name: "จุด CP", svg: '<circle cx="20" cy="20" r="14" fill="#1f5fbf" stroke="#fff" stroke-width="2.5"/><text x="20" y="25" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="13" fill="#fff">CP</text>', fixedUp: true },
+  marshal:  { name: "จุดมาร์แชล", svg: '<circle cx="20" cy="20" r="14" fill="#f2b705" stroke="#2b2100" stroke-width="2"/><path d="M15 29V11l12 5-12 5" fill="#2b2100"/>', fixedUp: true },
+  chicane:  { name: "ชิเคน", svg: '<path d="M4 28 L14 12 L26 28 L36 12" fill="none" stroke="#ffffff" stroke-width="6" stroke-linejoin="round"/><path d="M4 28 L14 12 L26 28 L36 12" fill="none" stroke="#d6311f" stroke-width="3" stroke-dasharray="4 4" stroke-linejoin="round"/>' },
+  medical:  { name: "หน่วยแพทย์", svg: '<rect x="6" y="6" width="28" height="28" rx="4" fill="#ffffff" stroke="#c4161c" stroke-width="2.5"/><path d="M17 11h6v6h6v6h-6v6h-6v-6h-6v-6h6z" fill="#c4161c"/>', fixedUp: true },
+  spectator:{ name: "พื้นที่ผู้ชม", svg: '<rect x="3" y="10" width="34" height="20" rx="2" fill="#3c8d4f" fill-opacity=".55" stroke="#1d5c2c" stroke-width="2"/><g fill="#123d1c"><circle cx="11" cy="17" r="2.6"/><circle cx="20" cy="17" r="2.6"/><circle cx="29" cy="17" r="2.6"/><path d="M7 26a4 4 0 0 1 8 0zM16 26a4 4 0 0 1 8 0zM25 26a4 4 0 0 1 8 0z"/></g>' },
+  pit:      { name: "Pit / พักรถ", svg: '<rect x="6" y="6" width="28" height="28" rx="4" fill="#26313b" stroke="#ffffff" stroke-width="2"/><text x="20" y="27" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="19" fill="#fff">P</text>', fixedUp: true },
+};
+const svgOf = (type) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">${EQUIP[type].svg}</svg>`;
+const svgCache = new Map();
+function getCachedSvg(type) {
+  if (!svgCache.has(type)) {
+    svgCache.set(type, svgOf(type));
+  }
+  return svgCache.get(type);
+}
+
+/* ===== STATE ===== */
+const STORE_KEY = "course-builder-v1";
+const state = {
+  name: DEFAULT_NAME, track: DEFAULT_TRACK,
+  width: 8, shift: 0, smooth: 10, style: "kerb", lw: 3.5, showCenter: false, showKm: true,
+  sections: [], items: [], iconSize: 28, adjL: {}, adjR: {}, handleStep: 20, title: DEFAULT_NAME, subtitle: "ผังสนามแข่งขัน",
+  autosave: true,
+};
+let road = null, proj = null, placingType = null, selectedId = null, nextId = 1;
+
+/* ===== UNDO/REDO ===== */
+const undoStack = [], redoStack = [], MAX_HISTORY = 50;
+function saveState() {
+  const snapshot = JSON.stringify({ v: 1, data: state });
+  undoStack.push(snapshot);
+  if (undoStack.length > MAX_HISTORY) undoStack.shift();
+  redoStack.length = 0;
+  updateUndoRedoButtons();
+}
+function undo() {
+  if (undoStack.length === 0) return;
+  redoStack.push(JSON.stringify({ v: 1, data: state }));
+  const prev = JSON.parse(undoStack.pop());
+  Object.assign(state, prev.data);
+  startCourse(true);
+  updateUndoRedoButtons();
+  toast("ย้อนกลับแล้ว");
+}
+function redo() {
+  if (redoStack.length === 0) return;
+  undoStack.push(JSON.stringify({ v: 1, data: state }));
+  const next = JSON.parse(redoStack.pop());
+  Object.assign(state, next.data);
+  startCourse(true);
+  updateUndoRedoButtons();
+  toast("ทำซ้ำแล้ว");
+}
+function updateUndoRedoButtons() {
+  document.getElementById("btn-undo").disabled = undoStack.length === 0;
+  document.getElementById("btn-redo").disabled = redoStack.length === 0;
+}
+
+function loadSaved() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (saved && saved.v === 1 && saved.data && saved.data.name === state.name) Object.assign(state, saved.data);
+  } catch (e) { console.warn("Failed to load saved state:", e); }
+}
+function persist() {
+  if (!state.autosave) return;
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({ v: 1, data: state })); } catch (e) { console.warn("Failed to save state:", e); toast("บันทึกไม่สำเร็จ: เมมอร์เต็ม"); }
+}
+
+/* ===== MAP ===== */
+const map = L.map("map", { zoomControl: true, maxZoom: 21, zoomSnap: 0.25, attributionControl: true });
+const SAT_URL = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+const SAT_MAX_NATIVE = 19;
+L.tileLayer(SAT_URL, { maxZoom: 21, maxNativeZoom: SAT_MAX_NATIVE, attribution: "Imagery © Esri, Maxar, Earthstar Geographics" }).addTo(map);
+L.control.scale({ metric: true, imperial: false }).addTo(map);
+
+const roadLayer = L.layerGroup().addTo(map);
+const kmLayer = L.layerGroup().addTo(map);
+const equipLayer = L.layerGroup().addTo(map);
+const markers = new Map();
+
+function metersPerPixel() {
+  const c = map.getCenter();
+  return 40075016.686 * Math.cos(c.lat * Math.PI / 180) / Math.pow(2, map.getZoom() + 8);
+}
+// รูปแบบเส้นขอบ: คืนรายการชั้นของเส้น (วาดซ้อนกัน) ใช้ทั้งบนแผนที่และตอน export
+function edgeStyles(pxPerM) {
+  const lw = state.lw;
+  const dash = Math.max(4, 2.5 * pxPerM);   // ลาย kerb ยาวประมาณ 2.5 ม.
+  switch (state.style) {
+    case "white":  return [{ color: "#111", weight: lw + 2, opacity: .45 }, { color: "#ffffff", weight: lw }];
+    case "yellow": return [{ color: "#111", weight: lw + 2, opacity: .45 }, { color: "#ffd21f", weight: lw }];
+    case "tape":   return [{ color: "#ffffff", weight: Math.max(1.5, lw * .6) }, { color: "#e1261c", weight: Math.max(1.5, lw * .6), dash: [Math.max(3, pxPerM), Math.max(3, pxPerM)] }];
+    default:       return [{ color: "#111", weight: lw + 2, opacity: .45 }, { color: "#ffffff", weight: lw }, { color: "#d6311f", weight: lw, dash: [dash, dash] }];
+  }
+}
+function drawRoad() {
+  roadLayer.clearLayers();
+  kmLayer.clearLayers();
+  if (!road) return;
+  const pxPerM = 1 / metersPerPixel();
+  const L_ = road.left.map(proj.toLL), R_ = road.right.map(proj.toLL);
+  if (state.showCenter) L.polyline(road.center.map(proj.toLL), { color: "#ffe24d", weight: 1.5, dashArray: "6 6", opacity: .9, interactive: false }).addTo(roadLayer);
+  for (const st of edgeStyles(pxPerM)) {
+    const o = { color: st.color, weight: st.weight, opacity: st.opacity ?? 1, dashArray: st.dash ? st.dash.join(" ") : null, lineCap: st.dash ? "butt" : "round", lineJoin: "round", interactive: false };
+    L.polyline(L_, o).addTo(roadLayer);
+    L.polyline(R_, o).addTo(roadLayer);
+  }
+  if (state.showKm) {
+    for (let d = 0; d <= road.length; d += 100) {
+      const i = indexAtS(road.s, d);
+      const p = road.prof[i], t = road.t[i], c = road.center[i];
+      const off = p.shift + p.width / 2 + p.aL + 4;
+      const pos = proj.toLL([c[0] - t[1] * off, c[1] + t[0] * off]);
+      L.marker(pos, { interactive: false, keyboard: false, icon: L.divIcon({ className: "km-tag", html: (d / 1000).toFixed(1), iconSize: null }) }).addTo(kmLayer);
+    }
+  }
+}
+function rebuild() {
+  road = buildRoad(state.track.map(proj.toXY), { width: state.width, shift: state.shift, smooth: state.smooth, sections: state.sections,
+    adjL: makeAdjFn(state.adjL, state.handleStep), adjR: makeAdjFn(state.adjR, state.handleStep) });
+  drawRoad();
+  if (!dragging) drawHandles();
+  document.getElementById("meta").textContent = road ? `ระยะ ${(road.length / 1000).toFixed(3)} กม. · จุด GPS ${state.track.length} จุด · กว้าง ${state.width} ม.` : "เส้นทางสั้นเกินไป";
+  persist();
+}
+
+/* ===== ลากปรับขอบถนน ===== */
+const handleLayer = L.layerGroup().addTo(map);
+let editEdges = false, dragging = false, rafPending = false;
+const fmtM = (v) => `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(2)} ม.`;
+function setEdgeStatus(text) { document.getElementById("edge-status").textContent = text; }
+
+function drawHandles() {
+  handleLayer.clearLayers();
+  if (!editEdges || !road) return;
+  const step = state.handleStep;
+  for (let s = 0; s <= road.length + 0.01; s += step) {
+    const i = indexAtS(road.s, s), c = road.center[i], t = road.t[i], n = [-t[1], t[0]];
+    const key = String(s);
+    for (const side of ["L", "R"]) addHandle(side, key, s, c, n, i);
+  }
+}
+// จุดจับหนึ่งจุด: เลื่อนได้เฉพาะแนว normal ของถนน ณ ตำแหน่งนั้น
+function addHandle(side, key, s, c, n, i) {
+  const store = side === "L" ? state.adjL : state.adjR;
+  const lateralOf = () => {
+    const p = road.prof[i], hw = p.width / 2;
+    return side === "L" ? p.shift + hw + (store[key] || 0) : p.shift - hw - (store[key] || 0);
+  };
+  const posAt = (lat) => L.latLng(proj.toLL([c[0] + n[0] * lat, c[1] + n[1] * lat]));
+  const moved = Math.abs(store[key] || 0) >= 0.02;
+  const m = L.marker(posAt(lateralOf()), { draggable: true, keyboard: false, zIndexOffset: 1000,
+    icon: L.divIcon({ className: "edge-handle" + (moved ? " moved" : ""), iconSize: [14, 14], iconAnchor: [7, 7], html: "<span></span>" }) }).addTo(handleLayer);
+  m.on("dragstart", () => { dragging = true; });
+  m.on("drag", (e) => {
+    const q = proj.toXY([e.latlng.lat, e.latlng.lng]);
+    const lat = (q[0] - c[0]) * n[0] + (q[1] - c[1]) * n[1];       // ระยะขวางถนนจากเส้นกลาง
+    const p = road.prof[i], hw = p.width / 2;
+    let d = side === "L" ? lat - (p.shift + hw) : (p.shift - hw) - lat;
+    d = Math.max(-hw * 2, Math.min(20, Math.round(d * 20) / 20));
+    const delta = d - (store[key] || 0);
+    setKnot(store, key, d);
+    if (document.getElementById("mode-both").checked) {
+      const other = side === "L" ? state.adjR : state.adjL;
+      setKnot(other, key, (other[key] || 0) - delta);   // ขอบอีกฝั่งเลื่อนตามไปทิศเดียวกัน ความกว้างคงเดิม
+    }
+    m.setLatLng(posAt(lateralOf()));
+    setEdgeStatus(`ขอบ${side === "L" ? "ซ้าย" : "ขวา"} ที่ ${Math.round(s)} ม. : ${fmtM(store[key] || 0)} (${(store[key] || 0) >= 0 ? "ออกนอก" : "เข้าใน"})`);
+    if (!rafPending) { rafPending = true; requestAnimationFrame(() => { rafPending = false; rebuild(); }); }
+  });
+  m.on("dragend", () => { dragging = false; rebuild(); });
+  m.on("dblclick", (e) => {
+    L.DomEvent.stopPropagation(e);
+    const val = store[key] || 0;
+    setKnot(store, key, 0);
+    if (document.getElementById("mode-both").checked) { const other = side === "L" ? state.adjR : state.adjL; setKnot(other, key, (other[key] || 0) + val); }
+    setEdgeStatus(`คืนค่าขอบ${side === "L" ? "ซ้าย" : "ขวา"} ที่ ${Math.round(s)} ม.`);
+    rebuild();
+  });
+}
+function setKnot(store, key, d) { if (Math.abs(d) < 0.02) delete store[key]; else store[key] = Math.round(d * 100) / 100; }
+
+function setEditEdges(on) {
+  editEdges = on;
+  const b = document.getElementById("btn-edit-edges");
+  b.setAttribute("aria-pressed", String(on));
+  b.textContent = on ? "เลิกปรับขอบ" : "เริ่มลากปรับขอบ";
+  b.classList.toggle("primary", !on);
+  if (on) { setPlacing(null); map.doubleClickZoom.disable(); } else map.doubleClickZoom.enable();
+  drawHandles();
+  if (on) toast("ลากจุดบนเส้นขอบเข้าหรือออกได้เลย");
+}
+document.getElementById("btn-edit-edges").addEventListener("click", () => setEditEdges(!editEdges));
+document.getElementById("in-hstep").addEventListener("change", (e) => {
+  const ns = parseInt(e.target.value, 10), len = road ? road.length : 0;
+  state.adjL = resampleKnots(state.adjL, state.handleStep, ns, len);
+  state.adjR = resampleKnots(state.adjR, state.handleStep, ns, len);
+  state.handleStep = ns; rebuild();
+});
+document.getElementById("btn-reset-edges").addEventListener("click", () => { document.getElementById("reset-edges-confirm").hidden = false; });
+document.getElementById("btn-reset-no").addEventListener("click", () => { document.getElementById("reset-edges-confirm").hidden = true; });
+document.getElementById("btn-reset-yes").addEventListener("click", () => {
+  state.adjL = {}; state.adjR = {}; document.getElementById("reset-edges-confirm").hidden = true; rebuild(); toast("คืนค่าขอบถนนแล้ว");
+});
+
+/* ===== EQUIPMENT ===== */
+function iconFor(item) {
+  const sz = state.iconSize, sel = item.id === selectedId;
+  const rot = EQUIP[item.type].fixedUp ? 0 : item.rot;
+  const label = item.label ? `<div style="position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:1px;background:rgba(20,24,23,.85);color:#fff;font:600 11px 'IBM Plex Sans Thai',sans-serif;padding:0 4px;border-radius:3px;white-space:nowrap">${escapeHtml(item.label)}</div>` : "";
+  return L.divIcon({ className: "eq-icon" + (sel ? " selected" : ""), iconSize: [sz, sz], iconAnchor: [sz / 2, sz / 2],
+    html: `<div class="rot" style="transform:rotate(${rot}deg)">${getCachedSvg(item.type)}</div>${label}` });
+}
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function addMarker(item) {
+  const m = L.marker([item.lat, item.lng], { draggable: true, icon: iconFor(item), keyboard: false }).addTo(equipLayer);
+  m.on("click", (e) => { L.DomEvent.stopPropagation(e); select(item.id); });
+  m.on("dragend", () => { const ll = m.getLatLng(); item.lat = ll.lat; item.lng = ll.lng; persist(); if (item.id === selectedId) showSelected(); });
+  markers.set(item.id, m);
+}
+function renderItems() {
+  equipLayer.clearLayers(); markers.clear();
+  for (const it of state.items) addMarker(it);
+  document.getElementById("eq-count").textContent = `อุปกรณ์บนแผนที่ ${state.items.length} ชิ้น`;
+}
+function refreshIcon(item) { const m = markers.get(item.id); if (m) m.setIcon(iconFor(item)); }
+// หมุนตามแนวถนน: มุมบนจอ (องศา ตามเข็ม) จาก tangent ในระบบ x=ตะวันออก y=เหนือ
+const screenAngle = (t) => ((-Math.atan2(t[1], t[0]) * 180 / Math.PI) + 360) % 360;
+
+function placeAt(type, latlng, snap) {
+  let lat = latlng.lat, lng = latlng.lng, rot = 0;
+  if (snap && road) {
+    const q = proj.toXY([lat, lng]);
+    const nl = nearestOnPolyline(road.left, q), nr = nearestOnPolyline(road.right, q);
+    const useLeft = nl.d <= nr.d, edge = useLeft ? road.left : road.right, k = useLeft ? nl.i : nr.i;
+    const a = edge[Math.max(0, k - 1)], b = edge[Math.min(edge.length - 1, k + 1)];
+    const tx = b[0] - a[0], ty = b[1] - a[1], Ln = Math.hypot(tx, ty) || 1;
+    const n = [-ty / Ln, tx / Ln], out = useLeft ? 1.2 : -1.2;   // ขยับออกนอกถนนเล็กน้อย
+    [lat, lng] = proj.toLL([edge[k][0] + n[0] * out, edge[k][1] + n[1] * out]);
+    rot = Math.round(screenAngle([tx / Ln, ty / Ln]));
+  }
+  const item = { id: nextId++, type, lat, lng, rot, label: "" };
+  state.items.push(item); addMarker(item); persist();
+  document.getElementById("eq-count").textContent = `อุปกรณ์บนแผนที่ ${state.items.length} ชิ้น`;
+  return item;
+}
+function placeAlong(type, side, from, to, gap, outM) {
+  if (!road) return 0;
+  const a = Math.max(0, Math.min(from, to)), b = Math.min(road.length, Math.max(from, to));
+  let count = 0;
+  for (let s = a; s <= b + 1e-6; s += Math.max(1, gap)) {
+    const i = indexAtS(road.s, s);
+    const c = road.center[i], t = road.t[i], p = road.prof[i], n = [-t[1], t[0]];
+    for (const sd of side === "B" ? ["L", "R"] : [side]) {
+      const off = sd === "L" ? p.shift + p.width / 2 + p.aL + outM : p.shift - p.width / 2 - p.aR - outM;
+      const [lat, lng] = proj.toLL([c[0] + n[0] * off, c[1] + n[1] * off]);
+      state.items.push({ id: nextId++, type, lat, lng, rot: Math.round(screenAngle(t)), label: "" });
+      count++;
+    }
+  }
+  renderItems(); persist();
+  return count;
+}
+function select(id) {
+  const prev = state.items.find((x) => x.id === selectedId);
+  selectedId = id;
+  if (prev) refreshIcon(prev);
+  const it = state.items.find((x) => x.id === id);
+  if (it) refreshIcon(it);
+  showTab("pane-equip");
+  showSelected();
+}
+function kmOf(lat, lng) {
+  if (!road) return null;
+  return road.s[nearestOnPolyline(road.center, proj.toXY([lat, lng])).i];
+}
+function showSelected() {
+  const it = state.items.find((x) => x.id === selectedId);
+  document.getElementById("sel-group").hidden = !it;
+  if (!it) return;
+  document.getElementById("sel-name").textContent = EQUIP[it.type].name;
+  const s = kmOf(it.lat, it.lng);
+  document.getElementById("sel-km").textContent = s == null ? "" : `ที่ ${Math.round(s)} ม.`;
+  document.getElementById("in-rot").value = it.rot;
+  document.getElementById("out-rot").textContent = `${it.rot}°`;
+  document.getElementById("in-rot").disabled = !!EQUIP[it.type].fixedUp;
+  document.getElementById("in-label").value = it.label || "";
+}
+
+/* ===== UI WIRING ===== */
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg; el.hidden = false;
+  clearTimeout(toast._t); toast._t = setTimeout(() => { el.hidden = true; }, 2600);
+}
+function showTab(id) {
+  for (const b of document.querySelectorAll(".tabs button")) b.setAttribute("aria-selected", String(b.dataset.pane === id));
+  for (const p of document.querySelectorAll(".pane")) p.hidden = p.id !== id;
+}
+for (const b of document.querySelectorAll(".tabs button")) b.addEventListener("click", () => showTab(b.dataset.pane));
+
+function bindRange(id, outId, key, fmt, after) {
+  const el = document.getElementById(id), out = document.getElementById(outId);
+  el.value = state[key]; out.textContent = fmt(state[key]);
+  el.addEventListener("input", () => { saveState(); state[key] = parseFloat(el.value); out.textContent = fmt(state[key]); after(); });
+}
+bindRange("in-width", "out-width", "width", (v) => `${v.toFixed(1)} ม.`, rebuild);
+bindRange("in-shift", "out-shift", "shift", (v) => `${v.toFixed(2)} ม.`, rebuild);
+bindRange("in-smooth", "out-smooth", "smooth", (v) => `${v} ม.`, rebuild);
+bindRange("in-lw", "out-lw", "lw", (v) => `${v} px`, () => { drawRoad(); persist(); });
+bindRange("in-isize", "out-isize", "iconSize", (v) => `${v} px`, () => { renderItems(); persist(); });
+
+const elStyle = document.getElementById("in-style");
+elStyle.value = state.style;
+elStyle.addEventListener("change", () => { state.style = elStyle.value; drawRoad(); persist(); });
+const elCenter = document.getElementById("in-center"), elKm = document.getElementById("in-km");
+elCenter.checked = state.showCenter; elKm.checked = state.showKm;
+elCenter.addEventListener("change", () => { state.showCenter = elCenter.checked; drawRoad(); persist(); });
+elKm.addEventListener("change", () => { state.showKm = elKm.checked; drawRoad(); persist(); });
+
+// ตารางปรับเป็นช่วง
+function renderSections() {
+  const body = document.getElementById("sec-body");
+  body.textContent = "";
+  state.sections.forEach((sec, idx) => {
+    const tr = document.createElement("tr");
+    for (const key of ["from", "to", "shift", "width"]) {
+      const td = document.createElement("td"), inp = document.createElement("input");
+      inp.type = "number"; inp.step = key === "from" || key === "to" ? "10" : "0.25"; inp.id = `sec-${idx}-${key}`;
+      inp.value = Number.isFinite(sec[key]) ? sec[key] : "";
+      if (key === "width") inp.placeholder = "เดิม";
+      inp.addEventListener("input", () => { const v = parseFloat(inp.value); sec[key] = Number.isFinite(v) ? v : (key === "width" ? null : 0); rebuild(); });
+      td.appendChild(inp); tr.appendChild(td);
+    }
+    const td = document.createElement("td"), del = document.createElement("button");
+    del.type = "button"; del.className = "btn small"; del.textContent = "ลบ"; del.setAttribute("aria-label", `ลบช่วงที่ ${idx + 1}`);
+    del.addEventListener("click", () => { state.sections.splice(idx, 1); renderSections(); rebuild(); });
+    td.appendChild(del); tr.appendChild(td);
+    body.appendChild(tr);
+  });
+}
+document.getElementById("btn-add-sec").addEventListener("click", () => {
+  const last = lastClickS ?? 0;
+  saveState();
+  state.sections.push({ from: Math.max(0, Math.round(last - 30)), to: Math.round(last + 30), shift: 1, width: null });
+  renderSections(); rebuild();
+});
+
+// Undo/Redo buttons
+document.getElementById("btn-undo").addEventListener("click", undo);
+document.getElementById("btn-redo").addEventListener("click", redo);
+document.addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
+  if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.key === "z" && e.shiftKey))) { e.preventDefault(); redo(); }
+});
+
+// palette
+const palette = document.getElementById("palette"), lineType = document.getElementById("in-l-type");
+for (const [key, eq] of Object.entries(EQUIP)) {
+  const b = document.createElement("button");
+  b.type = "button"; b.setAttribute("aria-pressed", "false"); b.dataset.type = key;
+  b.innerHTML = getCachedSvg(key) + `<span>${eq.name}</span>`;
+  b.addEventListener("click", () => setPlacing(placingType === key ? null : key));
+  palette.appendChild(b);
+  const o = document.createElement("option"); o.value = key; o.textContent = eq.name; lineType.appendChild(o);
+}
+lineType.value = "hay";
+function setPlacing(type) {
+  placingType = type;
+  for (const b of palette.querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.type === type));
+  document.getElementById("map").classList.toggle("placing", !!type);
+  if (type) toast(`คลิกบนแผนที่เพื่อวาง${EQUIP[type].name} (กด Esc เพื่อหยุด)`);
+}
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") setPlacing(null);
+  if ((e.key === "Delete" || e.key === "Backspace") && selectedId && !/INPUT|SELECT/.test(document.activeElement.tagName)) deleteSelected();
+});
+
+let lastClickS = null;
+map.on("click", (e) => {
+  if (placingType) { const it = placeAt(placingType, e.latlng, document.getElementById("in-snap").checked); select(it.id); return; }
+  if (selectedId) { const prev = state.items.find((x) => x.id === selectedId); selectedId = null; if (prev) refreshIcon(prev); showSelected(); }
+  const s = kmOf(e.latlng.lat, e.latlng.lng);
+  if (s != null) { lastClickS = s; document.getElementById("click-info").textContent = `จุดที่คลิก ≈ ${Math.round(s)} ม. จากจุดเริ่ม`; }
+});
+
+document.getElementById("in-rot").addEventListener("input", (e) => {
+  const it = state.items.find((x) => x.id === selectedId); if (!it) return;
+  it.rot = parseInt(e.target.value, 10); document.getElementById("out-rot").textContent = `${it.rot}°`; refreshIcon(it); persist();
+});
+document.getElementById("in-label").addEventListener("input", (e) => {
+  const it = state.items.find((x) => x.id === selectedId); if (!it) return;
+  it.label = e.target.value; refreshIcon(it); persist();
+});
+function deleteSelected() {
+  const idx = state.items.findIndex((x) => x.id === selectedId); if (idx < 0) return;
+  state.items.splice(idx, 1); selectedId = null; renderItems(); showSelected(); persist();
+}
+document.getElementById("btn-del").addEventListener("click", deleteSelected);
+document.getElementById("btn-dup").addEventListener("click", () => {
+  const it = state.items.find((x) => x.id === selectedId); if (!it) return;
+  const off = metersPerPixel() * state.iconSize / 111320;
+  const copy = { ...it, id: nextId++, lat: it.lat, lng: it.lng + off };
+  state.items.push(copy); addMarker(copy); select(copy.id); persist();
+});
+document.getElementById("btn-line").addEventListener("click", () => {
+  const n = placeAlong(lineType.value, document.getElementById("in-l-side").value,
+    parseFloat(document.getElementById("in-l-from").value) || 0, parseFloat(document.getElementById("in-l-to").value) || 0,
+    parseFloat(document.getElementById("in-l-gap").value) || 5, parseFloat(document.getElementById("in-l-out").value) || 0);
+  toast(`วาง${EQUIP[lineType.value].name} ${n} ชิ้น`);
+});
+document.getElementById("btn-clear").addEventListener("click", () => { document.getElementById("clear-confirm").hidden = false; });
+document.getElementById("btn-clear-no").addEventListener("click", () => { document.getElementById("clear-confirm").hidden = true; });
+document.getElementById("btn-clear-yes").addEventListener("click", () => {
+  state.items = []; selectedId = null; renderItems(); showSelected(); persist();
+  document.getElementById("clear-confirm").hidden = true; toast("ล้างอุปกรณ์แล้ว");
+});
+
+// title
+const elTitle = document.getElementById("in-title"), elSub = document.getElementById("in-sub");
+elTitle.value = state.title; elSub.value = state.subtitle;
+document.getElementById("course-title-view").textContent = state.title;
+elTitle.addEventListener("input", () => { state.title = elTitle.value; document.getElementById("course-title-view").textContent = state.title || state.name; persist(); });
+elSub.addEventListener("input", () => { state.subtitle = elSub.value; persist(); });
+
+// Settings
+const elAutosave = document.getElementById("in-autosave");
+elAutosave.checked = state.autosave;
+elAutosave.addEventListener("change", () => { state.autosave = elAutosave.checked; if (state.autosave) persist(); });
+document.getElementById("btn-clear-storage").addEventListener("click", () => { document.getElementById("clear-storage-confirm").hidden = false; });
+document.getElementById("btn-clear-storage-no").addEventListener("click", () => { document.getElementById("clear-storage-confirm").hidden = true; });
+document.getElementById("btn-clear-storage-yes").addEventListener("click", () => {
+  localStorage.removeItem(STORE_KEY);
+  document.getElementById("clear-storage-confirm").hidden = true;
+  toast("ล้างข้อมูลที่บันทึกแล้ว");
+});
+
+function fitCourse() { if (road) map.fitBounds(L.latLngBounds(road.center.map(proj.toLL)).pad(0.12)); }
+document.getElementById("btn-fit").addEventListener("click", fitCourse);
+map.on("zoomend", drawRoad);
+
+/* ===== FILES ===== */
+function downloadBlob(blob, filename) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+document.getElementById("btn-save").addEventListener("click", () => {
+  downloadBlob(new Blob([JSON.stringify({ v: 1, data: state }, null, 1)], { type: "application/json" }), `${state.name || "course"}-project.json`);
+});
+document.getElementById("btn-share").addEventListener("click", saveToUrl);
+
+// Save/Load from URL
+function saveToUrl() {
+  const compressed = btoa(JSON.stringify({ v: 1, data: state }));
+  const url = new URL(window.location.href);
+  url.searchParams.set("data", compressed);
+  url.searchParams.set("name", state.name || "course");
+  navigator.clipboard.writeText(url.toString()).then(() => {
+    toast("คัดลอกลิงก์แล้ว - สามารถแชร์ให้คนอื่นเปิดได้");
+  }).catch(() => {
+    toast("คัดลอกลิงก์ไม่สำเร็จ ลองกดคัดลอกจาก address bar");
+    window.history.replaceState({}, "", url);
+  });
+}
+function loadFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const data = params.get("data");
+  if (data) {
+    try {
+      const obj = JSON.parse(atob(data));
+      if (obj && obj.v === 1 && Array.isArray(obj.data?.track)) {
+        Object.assign(state, obj.data);
+        startCourse(true);
+        toast("โหลดจากลิงก์แล้ว");
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    } catch (e) {
+      console.error("Failed to load from URL:", e);
+    }
+  }
+}
+document.getElementById("btn-open").addEventListener("click", () => document.getElementById("file-json").click());
+document.getElementById("btn-gpx").addEventListener("click", () => document.getElementById("file-gpx").click());
+document.getElementById("file-json").addEventListener("change", async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const text = await f.text();
+    if (!text || text.length > 10 * 1024 * 1024) throw new Error("ไฟล์มีขนาดใหญ่เกินไป");
+    const obj = JSON.parse(text);
+    if (!obj || obj.v !== 1 || !Array.isArray(obj.data?.track)) throw new Error("ไม่ใช่ไฟล์งานของเครื่องมือนี้");
+    if (obj.data.track.length < 2) throw new Error("ข้อมูลเส้นทางไม่ถูกต้อง");
+    saveState();
+    Object.assign(state, obj.data); startCourse(true); toast("เปิดไฟล์งานแล้ว");
+  } catch (err) { toast(`เปิดไฟล์ไม่ได้: ${err.message}`); }
+  e.target.value = "";
+});
+function parseGpx(text) {
+  try {
+    const doc = new DOMParser().parseFromString(text, "application/xml");
+    let pts = [...doc.getElementsByTagName("trkpt")];
+    if (!pts.length) pts = [...doc.getElementsByTagName("rtept")];
+    const track = pts.map((p) => [parseFloat(p.getAttribute("lat")), parseFloat(p.getAttribute("lon"))]).filter((p) => Number.isFinite(p[0]) && Number.isFinite(p[1]));
+    const nameEl = doc.querySelector("trk > name") || doc.querySelector("metadata > name");
+    return { track, name: nameEl ? nameEl.textContent.trim() : "" };
+  } catch (e) {
+    throw new Error("GPX format ไม่ถูกต้อง");
+  }
+}
+document.getElementById("file-gpx").addEventListener("change", async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const text = await f.text();
+    if (!text || text.length > 50 * 1024 * 1024) throw new Error("ไฟล์ GPX มีขนาดใหญ่เกินไป");
+    const g = parseGpx(text);
+    if (g.track.length < 2) { toast("ไม่พบจุด track ในไฟล์ GPX นี้"); e.target.value = ""; return; }
+    if (g.track.length > 50000) { toast("GPX มีจุดมากเกินไป อาจทำให้ช้า"); }
+    saveState();
+    Object.assign(state, { track: g.track, name: g.name || f.name.replace(/\.gpx$/i, ""), sections: [], items: [], shift: 0, adjL: {}, adjR: {} });
+    state.title = state.name;
+    startCourse(true); toast(`โหลด ${state.name} แล้ว`);
+  } catch (err) { toast(`โหลด GPX ไม่ได้: ${err.message}`); }
+  e.target.value = "";
+});
+
+/* ===== EXPORT PNG ===== */
+function loadImage(src) {
+  return new Promise((res, rej) => { const im = new Image(); im.crossOrigin = "anonymous"; im.onload = () => res(im); im.onerror = () => rej(new Error(src)); im.src = src; });
+}
+async function exportPng() {
+  const btn = document.getElementById("btn-png");
+  btn.disabled = true; btn.textContent = "กำลังสร้างภาพ…";
+  try {
+    const scale = parseInt(document.getElementById("in-scale").value, 10);
+    const size = map.getSize(), z = map.getZoom();
+    const W = Math.round(size.x * scale), H = Math.round(size.y * scale);
+    const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+    const ctx = cv.getContext("2d");
+    ctx.fillStyle = "#20262a"; ctx.fillRect(0, 0, W, H);
+    const nw = map.project(map.getBounds().getNorthWest(), z);
+    const toCanvas = (ll) => { const p = map.project(ll, z); return [(p.x - nw.x) * scale, (p.y - nw.y) * scale]; };
+
+    // ภาพดาวเทียม
+    const tz = Math.min(SAT_MAX_NATIVE, Math.round(z + Math.log2(scale)));
+    const f = Math.pow(2, tz - z);
+    const nwT = map.project(map.getBounds().getNorthWest(), tz), seT = map.project(map.getBounds().getSouthEast(), tz);
+    const jobs = [];
+    let failed = 0;
+    for (let tx = Math.floor(nwT.x / 256); tx <= Math.floor(seT.x / 256); tx++) {
+      for (let ty = Math.floor(nwT.y / 256); ty <= Math.floor(seT.y / 256); ty++) {
+        const url = SAT_URL.replace("{z}", tz).replace("{x}", tx).replace("{y}", ty) + "?export=1";
+        jobs.push(loadImage(url).then((im) => {
+          const x = (tx * 256 / f - nw.x) * scale, y = (ty * 256 / f - nw.y) * scale, s = 256 / f * scale;
+          ctx.drawImage(im, x, y, s + 0.6, s + 0.6);
+        }).catch(() => { failed++; }));
+      }
+    }
+    await Promise.all(jobs);
+
+    // เส้นถนน
+    if (road) {
+      const pxPerM = scale / metersPerPixel();
+      const strokePath = (pts) => { ctx.beginPath(); pts.forEach((p, i) => { const [x, y] = toCanvas(L.latLng(proj.toLL(p))); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); };
+      if (state.showCenter) { ctx.save(); ctx.strokeStyle = "#ffe24d"; ctx.lineWidth = 1.5 * scale; ctx.setLineDash([6 * scale, 6 * scale]); strokePath(road.center); ctx.restore(); }
+      for (const st of edgeStyles(pxPerM / scale)) {
+        ctx.save();
+        ctx.strokeStyle = st.color; ctx.globalAlpha = st.opacity ?? 1; ctx.lineWidth = st.weight * scale;
+        ctx.lineJoin = "round"; ctx.lineCap = st.dash ? "butt" : "round";
+        ctx.setLineDash(st.dash ? st.dash.map((d) => d * scale) : []);
+        strokePath(road.left); strokePath(road.right);
+        ctx.restore();
+      }
+      if (state.showKm) {
+        ctx.font = `500 ${11 * scale}px "IBM Plex Mono", monospace`; ctx.textBaseline = "middle"; ctx.textAlign = "center";
+        for (let d = 0; d <= road.length; d += 100) {
+          const i = indexAtS(road.s, d);
+          const p = road.prof[i], t = road.t[i], c = road.center[i], off = p.shift + p.width / 2 + p.aL + 4;
+          const [x, y] = toCanvas(L.latLng(proj.toLL([c[0] - t[1] * off, c[1] + t[0] * off])));
+          const txt = (d / 1000).toFixed(1), w = ctx.measureText(txt).width + 8 * scale;
+          ctx.fillStyle = "rgba(20,24,23,.82)"; ctx.fillRect(x - w / 2, y - 8 * scale, w, 16 * scale);
+          ctx.fillStyle = "#fff"; ctx.fillText(txt, x, y);
+        }
+      }
+    }
+
+    // อุปกรณ์
+    const imgCache = {};
+    for (const type of new Set(state.items.map((i) => i.type))) {
+      imgCache[type] = await loadImage("data:image/svg+xml;charset=utf-8," + encodeURIComponent(getCachedSvg(type)));
+    }
+    const sz = state.iconSize * scale;
+    for (const it of state.items) {
+      const [x, y] = toCanvas(L.latLng(it.lat, it.lng));
+      if (x < -sz || y < -sz || x > W + sz || y > H + sz) continue;
+      ctx.save(); ctx.translate(x, y); ctx.rotate((EQUIP[it.type].fixedUp ? 0 : it.rot) * Math.PI / 180);
+      ctx.drawImage(imgCache[it.type], -sz / 2, -sz / 2, sz, sz); ctx.restore();
+      if (it.label) {
+        ctx.font = `600 ${11 * scale}px "IBM Plex Sans Thai", sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "top";
+        const w = ctx.measureText(it.label).width + 8 * scale;
+        ctx.fillStyle = "rgba(20,24,23,.85)"; ctx.fillRect(x - w / 2, y + sz / 2 + 1 * scale, w, 16 * scale);
+        ctx.fillStyle = "#fff"; ctx.fillText(it.label, x, y + sz / 2 + 2.5 * scale);
+      }
+    }
+
+    drawFrame(ctx, W, H, scale, imgCache);
+    cv.toBlob((blob) => {
+      if (!blob) { toast("สร้างภาพไม่สำเร็จ"); return; }
+      downloadBlob(blob, `${(state.title || state.name || "course").replace(/[\\/:*?"<>|]/g, "_")}.png`);
+      toast(failed ? `บันทึกแล้ว แต่ภาพดาวเทียม ${failed} ช่องโหลดไม่ขึ้น` : "บันทึกภาพแล้ว");
+    }, "image/png");
+  } catch (err) {
+    toast(`สร้างภาพไม่สำเร็จ: ${err.message}`);
+  } finally {
+    btn.disabled = false; btn.textContent = "บันทึกภาพ PNG";
+  }
+}
+// กรอบภาพ: หัวข้อ, คำอธิบายสัญลักษณ์, มาตราส่วน, ทิศเหนือ
+function drawFrame(ctx, W, H, k, imgCache) {
+  const pad = 16 * k;
+  // หัวข้อ
+  if (state.title || state.subtitle) {
+    ctx.font = `700 ${22 * k}px "Chakra Petch", sans-serif`;
+    const tW = ctx.measureText(state.title || "").width;
+    ctx.font = `500 ${13 * k}px "IBM Plex Sans Thai", sans-serif`;
+    const sW = ctx.measureText(state.subtitle || "").width;
+    const bw = Math.max(tW, sW) + 28 * k, bh = (state.subtitle ? 58 : 40) * k;
+    ctx.fillStyle = "rgba(255,255,255,.93)"; ctx.fillRect(pad, pad, bw, bh);
+    ctx.fillStyle = "#d6311f"; ctx.fillRect(pad, pad, 5 * k, bh);
+    ctx.fillStyle = "#1d2120"; ctx.textAlign = "left"; ctx.textBaseline = "top";
+    ctx.font = `700 ${22 * k}px "Chakra Petch", sans-serif`; ctx.fillText(state.title || "", pad + 16 * k, pad + 9 * k);
+    if (state.subtitle) { ctx.fillStyle = "#4b5450"; ctx.font = `500 ${13 * k}px "IBM Plex Sans Thai", sans-serif`; ctx.fillText(state.subtitle, pad + 16 * k, pad + 36 * k); }
+  }
+  // ทิศเหนือ
+  const nx = W - pad - 18 * k, ny = pad + 22 * k;
+  ctx.fillStyle = "rgba(255,255,255,.93)"; ctx.beginPath(); ctx.arc(nx, ny, 18 * k, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#1d2120"; ctx.beginPath(); ctx.moveTo(nx, ny - 13 * k); ctx.lineTo(nx + 6 * k, ny + 4 * k); ctx.lineTo(nx, ny); ctx.lineTo(nx - 6 * k, ny + 4 * k); ctx.closePath(); ctx.fill();
+  ctx.font = `700 ${10 * k}px "Chakra Petch", sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("N", nx, ny + 11 * k);
+  // มาตราส่วน
+  const mPerCanvasPx = metersPerPixel() / k;
+  const nice = [10, 20, 25, 50, 100, 200, 250, 500, 1000];
+  let len = nice[0]; for (const n of nice) if (n / mPerCanvasPx <= 160 * k) len = n;
+  const lpx = len / mPerCanvasPx, sx = W - pad - lpx, sy = H - pad - 10 * k;
+  ctx.fillStyle = "rgba(255,255,255,.93)"; ctx.fillRect(sx - 10 * k, sy - 22 * k, lpx + 20 * k, 32 * k);
+  ctx.fillStyle = "#1d2120"; ctx.fillRect(sx, sy, lpx, 4 * k); ctx.fillRect(sx, sy - 6 * k, 2 * k, 10 * k); ctx.fillRect(sx + lpx - 2 * k, sy - 6 * k, 2 * k, 10 * k);
+  ctx.font = `500 ${11 * k}px "IBM Plex Mono", monospace`; ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+  ctx.fillText(len >= 1000 ? `${len / 1000} กม.` : `${len} ม.`, sx + lpx / 2, sy - 3 * k);
+  // ระยะรวม + เครดิตภาพ
+  ctx.textAlign = "left"; ctx.textBaseline = "bottom"; ctx.font = `400 ${10 * k}px "IBM Plex Sans Thai", sans-serif`;
+  ctx.fillStyle = "rgba(255,255,255,.85)";
+  ctx.fillText(`ระยะสนาม ${road ? (road.length / 1000).toFixed(2) : "-"} กม. · ภาพดาวเทียม © Esri, Maxar`, pad, H - pad);
+  // คำอธิบายสัญลักษณ์
+  if (document.getElementById("in-legend").checked) {
+    const types = [...new Set(state.items.map((i) => i.type))];
+    const rows = [{ kind: "edge", name: "ขอบสนาม" }, ...types.map((t) => ({ kind: t, name: EQUIP[t].name }))];
+    const rh = 22 * k, lw = 168 * k, lh = rows.length * rh + 30 * k;
+    const lx = W - pad - lw, ly = pad + 52 * k;
+    ctx.fillStyle = "rgba(255,255,255,.93)"; ctx.fillRect(lx, ly, lw, lh);
+    ctx.fillStyle = "#1d2120"; ctx.font = `600 ${11 * k}px "Chakra Petch", sans-serif`; ctx.textAlign = "left"; ctx.textBaseline = "top";
+    ctx.fillText("สัญลักษณ์", lx + 10 * k, ly + 8 * k);
+    rows.forEach((r, i) => {
+      const y = ly + 26 * k + i * rh + rh / 2;
+      if (r.kind === "edge") {
+        for (const st of edgeStyles(1)) { ctx.save(); ctx.strokeStyle = st.color; ctx.globalAlpha = st.opacity ?? 1; ctx.lineWidth = st.weight * k; ctx.setLineDash(st.dash ? [5 * k, 5 * k] : []); ctx.beginPath(); ctx.moveTo(lx + 10 * k, y); ctx.lineTo(lx + 34 * k, y); ctx.stroke(); ctx.restore(); }
+      } else ctx.drawImage(imgCache[r.kind], lx + 12 * k, y - 10 * k, 20 * k, 20 * k);
+      ctx.fillStyle = "#1d2120"; ctx.font = `500 ${12 * k}px "IBM Plex Sans Thai", sans-serif`; ctx.textBaseline = "middle";
+      ctx.fillText(r.name, lx + 44 * k, y);
+    });
+  }
+}
+document.getElementById("btn-png").addEventListener("click", exportPng);
+
+/* ===== START ===== */
+function startCourse(fit) {
+  const lats = state.track.map((p) => p[0]), lons = state.track.map((p) => p[1]);
+  proj = makeProjection([(Math.min(...lats) + Math.max(...lats)) / 2, (Math.min(...lons) + Math.max(...lons)) / 2]);
+  nextId = state.items.reduce((m, i) => Math.max(m, i.id), 0) + 1;
+  map.setView(proj.toLL([0, 0]), 17);   // ต้องมี view ก่อนวาดเส้น
+  for (const [id, key] of [["in-width", "width"], ["in-shift", "shift"], ["in-smooth", "smooth"], ["in-lw", "lw"], ["in-isize", "iconSize"]]) {
+    const el = document.getElementById(id); el.value = state[key]; el.dispatchEvent(new Event("input"));
+  }
+  elStyle.value = state.style; elCenter.checked = state.showCenter; elKm.checked = state.showKm;
+  state.adjL = state.adjL || {}; state.adjR = state.adjR || {}; state.handleStep = state.handleStep || 20;
+  document.getElementById("in-hstep").value = String(state.handleStep);
+  elTitle.value = state.title; elSub.value = state.subtitle;
+  document.getElementById("course-title-view").textContent = state.title || state.name;
+  renderSections(); rebuild(); renderItems(); showSelected();
+  if (fit) fitCourse();
+}
+loadSaved();
+loadFromUrl();
+// ถ้ายังไม่เคยวางอุปกรณ์ ใส่จุด Start/Finish ไว้ที่ต้นทางให้เป็นตัวอย่าง
+const firstRun = state.items.length === 0;
+startCourse(true);
+if (firstRun && road) {
+  const t0 = road.t[0], c0 = road.center[0];
+  const [lat, lng] = proj.toLL(c0);
+  state.items.push({ id: nextId++, type: "start", lat, lng, rot: Math.round(screenAngle([-t0[1], t0[0]])), label: "START" });
+  renderItems(); persist();
+}
+</script>
+</body>
+</html>
