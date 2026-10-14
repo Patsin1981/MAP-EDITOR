@@ -298,18 +298,19 @@ document.addEventListener("DOMContentLoaded", function() {
     L.tileLayer(SAT_URL, { maxZoom: 21, maxNativeZoom: SAT_MAX_NATIVE, attribution: "Imagery © Esri, Maxar, Earthstar Geographics" }).addTo(map);
     L.control.scale({ metric: true, imperial: false }).addTo(map);
     console.log("Map initialized successfully");
+
+    // Initialize layers
+    roadLayer = L.layerGroup().addTo(map);
+    kmLayer = L.layerGroup().addTo(map);
+    equipLayer = L.layerGroup().addTo(map);
+    drawLayer = L.layerGroup().addTo(map);
+    measureLayer = L.layerGroup().addTo(map);
+    markerLayer = L.layerGroup().addTo(map);
+    handleLayer = L.layerGroup().addTo(map);
   } catch (e) {
     console.error("Error initializing map:", e);
     alert("เกิดข้อผิดพลาดในการโหลดแผนที่: " + e.message);
   }
-
-  // Initialize layers
-  roadLayer = L.layerGroup().addTo(map);
-  kmLayer = L.layerGroup().addTo(map);
-  equipLayer = L.layerGroup().addTo(map);
-  drawLayer = L.layerGroup().addTo(map);
-  measureLayer = L.layerGroup().addTo(map);
-  markerLayer = L.layerGroup().addTo(map);
 
   // All initialization code goes here
 /* ===== ข้อมูลเส้นทางเริ่มต้น (จากไฟล์ GPX ที่ส่งมา) ===== */
@@ -520,7 +521,7 @@ const state = {
 };
 let road = null, proj = null, placingType = null, selectedId = null, nextId = 1;
 let drawingMode = false, measuringMode = false, markerMode = false;
-let drawLayer, measureLayer, markerLayer;
+let drawLayer, measureLayer, markerLayer, handleLayer;
 let drawPoints = [], measurePoints = [];
 let customMarkers = [];
 
@@ -620,7 +621,6 @@ function rebuild() {
 }
 
 /* ===== ลากปรับขอบถนน ===== */
-const handleLayer = L.layerGroup().addTo(map);
 let editEdges = false, dragging = false, rafPending = false;
 const fmtM = (v) => `${v >= 0 ? "+" : "−"}${Math.abs(v).toFixed(2)} ม.`;
 function setEdgeStatus(text) { document.getElementById("edge-status").textContent = text; }
