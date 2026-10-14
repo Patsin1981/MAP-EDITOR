@@ -131,10 +131,6 @@ table.sections input { width: 100%; padding: 4px 5px; }
   </div>
   <div class="tabs" role="tablist">
     <button id="tab-road" role="tab" aria-selected="true" data-pane="pane-road">🛣️ ถนน</button>
-    <button id="tab-equip" role="tab" aria-selected="false" data-pane="pane-equip">🚧 อุปกรณ์</button>
-    <button id="tab-draw" role="tab" aria-selected="false" data-pane="pane-draw">✏️ วาด</button>
-    <button id="tab-export" role="tab" aria-selected="false" data-pane="pane-export">📤 ส่งออก</button>
-    <button id="tab-settings" role="tab" aria-selected="false" data-pane="pane-settings">⚙️ ตั้งค่า</button>
   </div>
 
   <section class="pane" id="pane-road">
@@ -180,11 +176,8 @@ table.sections input { width: 100%; padding: 4px 5px; }
       <div class="row"><label><input id="in-center" type="checkbox"> แสดงเส้น GPX กลางถนน</label></div>
       <div class="row"><label><input id="in-km" type="checkbox" checked> แสดงระยะทุก 100 ม.</label></div>
     </div>
-  </section>
-
-  <section class="pane" id="pane-equip" hidden>
     <div class="group">
-      <h2>วางทีละชิ้น</h2>
+      <h2>🚧 อุปกรณ์</h2>
       <p class="hint">เลือกอุปกรณ์แล้วคลิกบนแผนที่ ลากเพื่อย้าย คลิกที่ชิ้นเพื่อหมุนหรือลบ</p>
       <div class="palette" id="palette"></div>
       <div class="row"><label><input id="in-snap" type="checkbox" checked> ชิดขอบถนนและหมุนตามแนว</label></div>
@@ -215,31 +208,8 @@ table.sections input { width: 100%; padding: 4px 5px; }
       <div class="row"><span class="hint" id="eq-count"></span><button class="btn small" id="btn-clear" type="button">ล้างอุปกรณ์ทั้งหมด</button></div>
       <div class="row" id="clear-confirm" hidden><span class="hint">ลบอุปกรณ์ทั้งหมดแน่ใจไหม</span><button class="btn small primary" id="btn-clear-yes" type="button">ลบ</button><button class="btn small" id="btn-clear-no" type="button">ยกเลิก</button></div>
     </div>
-  </section>
-
-  <section class="pane" id="pane-export" hidden>
     <div class="group">
-      <h2>ภาพสำหรับ presentation</h2>
-      <div class="row"><label for="in-title">หัวข้อบนภาพ</label><input id="in-title" type="text" value="Map Editor"></div>
-      <div class="row"><label for="in-sub">บรรทัดรอง</label><input id="in-sub" type="text" value="แผนที่และแผนผัง"></div>
-      <div class="row"><label><input id="in-legend" type="checkbox" checked> ใส่คำอธิบายสัญลักษณ์</label></div>
-      <div class="row"><label for="in-scale">ความละเอียด</label><select id="in-scale"><option value="1">เท่าหน้าจอ</option><option value="2" selected>2 เท่า (แนะนำ)</option><option value="3">3 เท่า</option></select></div>
-      <div class="row"><button class="btn primary" id="btn-png" type="button" title="บันทึกภาพหน้าจอปัจจุบัน">บันทึกภาพ PNG</button><button class="btn" id="btn-fit" type="button" title="ซูมและจัดให้เห็นทั้งหมด">จัดให้เห็นทั้งสนาม</button></div>
-      <p class="hint">ภาพที่ได้คือส่วนที่เห็นบนแผนที่ตอนนี้ ซูมและจัดมุมก่อนกดบันทึก</p>
-    </div>
-    <div class="group">
-      <h2>ไฟล์งาน</h2>
-      <p class="hint">บันทึกค่าถนนและอุปกรณ์ทั้งหมดเป็นไฟล์ไว้เปิดแก้ต่อ</p>
-      <div class="row"><button class="btn" id="btn-save" type="button">บันทึกไฟล์งาน</button><button class="btn" id="btn-open" type="button">เปิดไฟล์งาน</button></div>
-      <div class="row"><button class="btn" id="btn-share" type="button">🔗 แชร์ลิงก์</button><button class="btn" id="btn-gpx" type="button">เปิด GPX เส้นใหม่</button></div>
-      <input id="file-json" type="file" accept=".json,application/json" hidden>
-      <input id="file-gpx" type="file" accept=".gpx" hidden>
-    </div>
-  </section>
-
-  <section class="pane" id="pane-draw" hidden>
-    <div class="group">
-      <h2>วาดเส้นฟรีแฮนด์</h2>
+      <h2>✏️ วาดเส้น</h2>
       <p class="hint">คลิกและลากเพื่อวาดเส้นอิสระบนแผนที่</p>
       <div class="row"><button class="btn primary" id="btn-draw-line" type="button" aria-pressed="false" title="คลิกแล้วคลิกบนแผนที่เพื่อวาดเส้น">วาดเส้น</button></div>
       <div class="row"><label for="in-draw-color">สีเส้น</label>
@@ -255,7 +225,7 @@ table.sections input { width: 100%; padding: 4px 5px; }
       <div class="row"><button class="btn small" id="btn-clear-draw" type="button">ล้างเส้นทั้งหมด</button></div>
     </div>
     <div class="group">
-      <h2>วัดระยะทาง</h2>
+      <h2>📏 วัดระยะทาง</h2>
       <p class="hint">คลิกบนแผนที่เพื่อวัดระยะทางระหว่างจุด</p>
       <div class="row"><button class="btn primary" id="btn-measure" type="button" aria-pressed="false" title="คลิกหลายจุดเพื่อวัดระยะทางรวม">วัดระยะ</button></div>
       <div class="row"><span class="hint" id="measure-result">ระยะทาง: -</span></div>
@@ -267,19 +237,27 @@ table.sections input { width: 100%; padding: 4px 5px; }
       <div class="row"><button class="btn primary" id="btn-marker" type="button" aria-pressed="false" title="วางมาร์กเกอร์พร้อมข้อความ">วางมาร์กเกอร์</button></div>
       <div class="row"><label for="in-marker-text">ข้อความ</label><input id="in-marker-text" type="text" placeholder="เช่น จุดนัดพบ"></div>
     </div>
-  </section>
-
-  <section class="pane" id="pane-settings" hidden>
     <div class="group">
-      <h2>การตั้งค่าแอป</h2>
-      <div class="row"><label><input id="in-autosave" type="checkbox" checked> บันทึกอัตโนมัติ (Auto-save)</label></div>
-      <p class="hint">บันทึกข้อมูลไป localStorage ทุกครั้งที่มีการเปลี่ยนแปลง</p>
+      <h2>📤 ส่งออกภาพ</h2>
+      <div class="row"><label for="in-title">หัวข้อบนภาพ</label><input id="in-title" type="text" value="Map Editor"></div>
+      <div class="row"><label for="in-sub">บรรทัดรอง</label><input id="in-sub" type="text" value="แผนที่และแผนผัง"></div>
+      <div class="row"><label><input id="in-legend" type="checkbox" checked> ใส่คำอธิบายสัญลักษณ์</label></div>
+      <div class="row"><label for="in-scale">ความละเอียด</label><select id="in-scale"><option value="1">เท่าหน้าจอ</option><option value="2" selected>2 เท่า (แนะนำ)</option><option value="3">3 เท่า</option></select></div>
+      <div class="row"><button class="btn primary" id="btn-png" type="button" title="บันทึกภาพหน้าจอปัจจุบัน">บันทึกภาพ PNG</button><button class="btn" id="btn-fit" type="button" title="ซูมและจัดให้เห็นทั้งหมด">จัดให้เห็นทั้งหมด</button></div>
+      <p class="hint">ภาพที่ได้คือส่วนที่เห็นบนแผนที่ตอนนี้ ซูมและจัดมุมก่อนกดบันทึก</p>
     </div>
     <div class="group">
-      <h2>ข้อมูลแอป</h2>
-      <p class="hint">เวอร์ชัน: 1.0</p>
-      <p class="hint">ฟอนต์: Chakra Petch, IBM Plex Sans Thai</p>
-      <p class="hint">แผนที่: Esri/Maxar (Leaflet)</p>
+      <h2>💾 ไฟล์งาน</h2>
+      <p class="hint">บันทึกค่าถนนและอุปกรณ์ทั้งหมดเป็นไฟล์ไว้เปิดแก้ต่อ</p>
+      <div class="row"><button class="btn" id="btn-save" type="button">บันทึกไฟล์งาน</button><button class="btn" id="btn-open" type="button">เปิดไฟล์งาน</button></div>
+      <div class="row"><button class="btn" id="btn-share" type="button">🔗 แชร์ลิงก์</button><button class="btn" id="btn-gpx" type="button">เปิด GPX เส้นใหม่</button></div>
+      <input id="file-json" type="file" accept=".json,application/json" hidden>
+      <input id="file-gpx" type="file" accept=".gpx" hidden>
+    </div>
+    <div class="group">
+      <h2>⚙️ ตั้งค่า</h2>
+      <div class="row"><label><input id="in-autosave" type="checkbox" checked> บันทึกอัตโนมัติ (Auto-save)</label></div>
+      <p class="hint">บันทึกข้อมูลไป localStorage ทุกครั้งที่มีการเปลี่ยนแปลง</p>
     </div>
     <div class="group">
       <h2>ล้างข้อมูล</h2>
