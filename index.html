@@ -732,7 +732,6 @@ function select(id) {
   if (prev) refreshIcon(prev);
   const it = state.items.find((x) => x.id === id);
   if (it) refreshIcon(it);
-  showTab("pane-equip");
   showSelected();
 }
 function kmOf(lat, lng) {
@@ -758,12 +757,6 @@ function toast(msg) {
   el.textContent = msg; el.hidden = false;
   clearTimeout(toast._t); toast._t = setTimeout(() => { el.hidden = true; }, 2600);
 }
-function showTab(id) {
-  for (const b of document.querySelectorAll(".tabs button")) b.setAttribute("aria-selected", String(b.dataset.pane === id));
-  for (const p of document.querySelectorAll(".pane")) p.hidden = p.id !== id;
-}
-for (const b of document.querySelectorAll(".tabs button")) b.addEventListener("click", () => showTab(b.dataset.pane));
-
 function bindRange(id, outId, key, fmt, after) {
   const el = document.getElementById(id), out = document.getElementById(outId);
   el.value = state[key]; out.textContent = fmt(state[key]);
