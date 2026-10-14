@@ -64,8 +64,8 @@ aside { background: var(--panel); border-left: 1px solid var(--line); display: f
 .brand { padding: 14px 16px 10px; border-bottom: 1px solid var(--line); }
 .brand h1 { margin: 0; font: 700 20px/1.1 var(--font-display); letter-spacing: .02em; text-wrap: balance; }
 .brand .meta { margin-top: 4px; font: 12px var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
-.tabs { display: flex; border-bottom: 1px solid var(--line); }
-.tabs button { flex: 1; padding: 14px 8px; border: 0; background: none; color: var(--muted); font: 700 14px var(--font-display); letter-spacing: .04em; text-transform: uppercase; cursor: pointer; border-bottom: 4px solid transparent; transition: all 0.2s ease; }
+.tabs { display: flex; border-bottom: 1px solid var(--line); pointer-events: auto; }
+.tabs button { flex: 1; padding: 14px 8px; border: 0; background: none; color: var(--muted); font: 700 14px var(--font-display); letter-spacing: .04em; text-transform: uppercase; cursor: pointer; border-bottom: 4px solid transparent; transition: all 0.2s ease; pointer-events: auto; min-height: 44px; }
 .tabs button:hover { color: var(--fg); background: rgba(0,0,0,0.02); }
 .tabs button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
 .pane { overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; min-height: 0; flex: 1; }
@@ -115,12 +115,12 @@ table.sections input { width: 100%; padding: 4px 5px; }
   aside { border-left: 0; border-top: 1px solid var(--line); }
   .brand { padding: 10px 12px 8px; }
   .brand h1 { font-size: 18px; }
-  .tabs { order: 4; border-top: 1px solid var(--line); border-bottom: 0; position: fixed; bottom: 0; left: 0; right: 0; background: var(--panel); z-index: 1000; padding-bottom: env(safe-area-inset-bottom, 0px); }
-  .tabs button { padding: 10px 6px; font-size: 12px; flex: 1; }
+  .tabs { order: 4; border-top: 1px solid var(--line); border-bottom: 0; position: fixed; bottom: 0; left: 0; right: 0; background: var(--panel); z-index: 9999; padding-bottom: env(safe-area-inset-bottom, 0px); pointer-events: auto; }
+  .tabs button { padding: 10px 6px; font-size: 12px; flex: 1; pointer-events: auto; }
   .tabs button#tab-menu { font-size: 18px; padding: 8px; }
   .quick-actions { padding: 8px 12px; }
   .quick-btn { font-size: 11px; padding: 6px 8px; min-width: 60px; }
-  .pane { padding: 12px; gap: 12px; padding-bottom: 60px; }
+  .pane { padding: 12px; gap: 12px; padding-bottom: 80px; overflow-y: auto; }
   .group { padding: 12px; }
   .group > h2 { font-size: 13px; }
   .btn { padding: 8px 12px; font-size: 13px; min-height: 36px; }
