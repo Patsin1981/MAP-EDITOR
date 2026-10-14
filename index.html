@@ -1491,17 +1491,28 @@ if (tabMenuBtn) {
   console.log("Tab menu button found:", tabMenuBtn);
   tabMenuBtn.addEventListener("click", (e) => {
     console.log("Tab menu clicked", e);
+    e.preventDefault();
+    e.stopPropagation();
     bottomSheet.classList.toggle("open");
   });
 } else {
   console.error("Tab menu button not found!");
 }
 
+// Global click listener for debugging
+document.addEventListener('click', (e) => {
+  console.log("Global click:", e.target, e.target.tagName, e.target.id);
+}, true);
+
 // Tab switching
 const tabButtons = document.querySelectorAll('.tabs button:not(#tab-menu)');
+console.log("Found tab buttons:", tabButtons.length, tabButtons);
 tabButtons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    console.log("Tab clicked:", btn.id);
+  console.log("Adding listener to:", btn.id, btn);
+  btn.addEventListener('click', (e) => {
+    console.log("Tab clicked:", btn.id, e);
+    e.preventDefault();
+    e.stopPropagation();
     // Remove aria-selected from all tabs
     tabButtons.forEach(b => b.setAttribute('aria-selected', 'false'));
     // Set current tab as selected
