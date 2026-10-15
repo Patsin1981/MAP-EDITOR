@@ -10,6 +10,10 @@
 ```
 /
 ├── index.html          # Main application file (contains HTML, CSS, JS)
+├── manifest.json       # PWA manifest
+├── sw.js               # Service Worker (network-first; bump CACHE_NAME เมื่อเพิ่ม/ลบไฟล์ใน cache)
+├── icon-192.png/.svg   # PWA icons
+├── icon-512.png/.svg
 ├── README.md           # Thai documentation
 ├── README_EN.md        # English documentation
 ├── DEPLOY.md           # Deployment guide
@@ -114,6 +118,5 @@ After making changes:
 ## Future Improvements
 - Consider splitting into separate files if code grows too large
 - Add unit tests
-- Add PWA support for offline use
 - Add more export formats (PDF, SVG)
 - Add multi-language support (i18n)

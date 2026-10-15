@@ -7,7 +7,8 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<link rel="manifest" href="manifest.json?v=2">
+<link rel="manifest" href="manifest.json?v=3">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Map Editor">
@@ -338,7 +339,7 @@ table.sections input { width: 100%; padding: 4px 5px; }
       <div class="row"><label for="in-sub">บรรทัดรอง</label><input id="in-sub" type="text" value="แผนที่และแผนผัง"></div>
       <div class="row"><label><input id="in-legend" type="checkbox" checked> ใส่คำอธิบายสัญลักษณ์</label></div>
       <div class="row"><label for="in-scale">ความละเอียด</label><select id="in-scale"><option value="1">เท่าหน้าจอ</option><option value="2" selected>2 เท่า (แนะนำ)</option><option value="3">3 เท่า</option></select></div>
-      <div class="row"><button class="btn primary" id="btn-png" type="button" title="บันทึกภาพหน้าจอปัจจุบัน">บันทึกภาพ PNG</button><button class="btn" id="btn-fit" type="button" title="ซูมและจัดให้เห็นทั้งหมด">จัดให้เห็นทั้งหมด</button></div>
+      <div class="row"><button class="btn primary" id="btn-png" type="button" title="บันทึกภาพหน้าจอปัจจุบัน">บันทึกภาพ PNG</button><button class="btn" id="btn-fit-export" type="button" title="ซูมและจัดให้เห็นทั้งหมด">จัดให้เห็นทั้งหมด</button></div>
       <p class="hint">ภาพที่ได้คือส่วนที่เห็นบนแผนที่ตอนนี้ ซูมและจัดมุมก่อนกดบันทึก</p>
     </div>
     <div class="group">
@@ -1115,7 +1116,7 @@ elSub.addEventListener("input", () => { state.subtitle = elSub.value; persist();
 // Settings
 const elAutosave = document.getElementById("in-autosave-main");
 elAutosave.checked = state.autosave;
-elAutosave.addEventListener("change", () => { state.autosave = elAutosave.checked; if (state.autosave) persist(); });
+elAutosave.addEventListener("change", () => { state.autosave = elAutosave.checked; const m = document.getElementById("in-autosave-modal"); if (m) m.checked = state.autosave; if (state.autosave) persist(); });
 document.getElementById("btn-clear-storage").addEventListener("click", () => { document.getElementById("clear-storage-confirm").hidden = false; });
 document.getElementById("btn-clear-storage-no").addEventListener("click", () => { document.getElementById("clear-storage-confirm").hidden = true; });
 document.getElementById("btn-clear-storage-yes").addEventListener("click", () => {
@@ -1127,10 +1128,15 @@ document.getElementById("btn-clear-storage-yes").addEventListener("click", () =>
 // Settings modal - autosave
 const elAutosaveModal = document.getElementById("in-autosave-modal");
 elAutosaveModal.checked = state.autosave;
-elAutosaveModal.addEventListener("change", () => { state.autosave = elAutosaveModal.checked; if (state.autosave) persist(); });
+elAutosaveModal.addEventListener("change", () => { state.autosave = elAutosaveModal.checked; elAutosave.checked = state.autosave; if (state.autosave) persist(); });
 
 // Settings modal - clear storage
-document.getElementById("btn-clear-storage-modal").addEventListener("click", () => { document.getElementById("clear-storage-confirm").hidden = false; });
+document.getElementById("btn-clear-storage-modal").addEventListener("click", () => {
+  if (confirm("ล้างข้อมูลที่บันทึกไว้ทั้งหมดแน่ใจไหม")) {
+    localStorage.removeItem(STORE_KEY);
+    toast("ล้างข้อมูลที่บันทึกแล้ว");
+  }
+});
 
 /* ===== DRAWING & MEASURING ===== */
 document.getElementById("btn-draw-line").addEventListener("click", () => {
@@ -1215,6 +1221,7 @@ map.on("click", (e) => {
 
 function fitCourse() { if (road) map.fitBounds(L.latLngBounds(road.center.map(proj.toLL)).pad(0.12)); }
 document.getElementById("btn-fit").addEventListener("click", fitCourse);
+document.getElementById("btn-fit-export").addEventListener("click", fitCourse);
 map.on("zoomend", drawRoad);
 
 /* ===== FILES ===== */
@@ -1483,27 +1490,33 @@ if (firstRun && road) {
 // Register Service Worker for PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(registration => {
-        console.log('Service Worker registered: ', registration);
+    // reload เฉพาะตอนมีเวอร์ชันใหม่มาแทนของเดิม (ไม่ reload ตอนติดตั้งครั้งแรก)
+    const hadController = !!navigator.serviceWorker.controller;
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!hadController || reloading) return;
+      reloading = true;
+      window.location.reload();
+    });
 
-        // Check for updates
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+      .then(registration => {
+        // เช็กอัปเดตทุกครั้งที่กลับมาเปิดแอป
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') registration.update().catch(() => {});
+        });
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
+          if (!newWorker) return;
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              toast('มีอัปเดตใหม่! รีเฟรชหน้าจอเพื่ออัปเดต');
+              toast('กำลังอัปเดตเป็นเวอร์ชันใหม่...');
             }
           });
         });
-
-        // Listen for controlling change (new version takes control)
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          window.location.reload();
-        });
       })
       .catch(error => {
-        console.log('Service Worker registration failed: ', error);
+        console.warn('Service Worker registration failed: ', error);
       });
   });
 }
@@ -1516,9 +1529,7 @@ const aboutModal = document.getElementById("about-modal");
 // Tab menu button
 const tabMenuBtn = document.getElementById("tab-menu");
 if (tabMenuBtn) {
-  console.log("Tab menu button found:", tabMenuBtn);
   tabMenuBtn.addEventListener("click", (e) => {
-    console.log("Tab menu clicked", e);
     e.preventDefault();
     e.stopPropagation();
     bottomSheet.classList.toggle("open");
@@ -1527,18 +1538,10 @@ if (tabMenuBtn) {
   console.error("Tab menu button not found!");
 }
 
-// Global click listener for debugging
-document.addEventListener('click', (e) => {
-  console.log("Global click:", e.target, e.target.tagName, e.target.id);
-}, true);
-
 // Tab switching
 const tabButtons = document.querySelectorAll('.tabs button:not(#tab-menu)');
-console.log("Found tab buttons:", tabButtons.length, tabButtons);
 tabButtons.forEach(btn => {
-  console.log("Adding listener to:", btn.id, btn);
   btn.addEventListener('click', (e) => {
-    console.log("Tab clicked:", btn.id, e);
     e.preventDefault();
     e.stopPropagation();
     // Remove aria-selected from all tabs
