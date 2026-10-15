@@ -14,12 +14,16 @@
     const closeSettings = id('close-settings');
     const closeAbout = id('close-about');
 
-    // Inject defensive CSS to ensure controls are above map and receive pointer events
+    // Inject defensive CSS only on small screens to avoid breaking desktop layout.
     try {
-      const style = document.createElement('style');
-      style.id = 'map-editor-menu-fix';
-      style.textContent = "\n        .bottom-sheet{z-index:2000!important;pointer-events:auto!important;}\n        .tabs{z-index:100000!important;}\n        .modal{z-index:3000!important;pointer-events:auto!important;}\n      ";
-      document.head.appendChild(style);
+      const existing = document.getElementById('map-editor-menu-fix');
+      // Only inject when viewport is mobile-sized and no existing style element
+      if (!existing && window.matchMedia && window.matchMedia('(max-width: 760px)').matches) {
+        const style = document.createElement('style');
+        style.id = 'map-editor-menu-fix';
+        style.textContent = `\n/* Scoped fixes for mobile bottom-sheet/menu only */\n@media (max-width: 760px) {\n  .bottom-sheet{z-index:2000!important;pointer-events:auto!important;}\n  .tabs{z-index:10000!important;}\n}\n/* Ensure modals are above map on all sizes but keep value modest */\n.modal{z-index:3000!important;pointer-events:auto!important;}\n`;
+        document.head.appendChild(style);
+      }
     } catch (e) {
       console.warn('startCourse.js: failed to inject styles', e);
     }
