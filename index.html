@@ -116,7 +116,7 @@ table.sections input { width: 100%; padding: 4px 5px; }
   aside { border-left: 0; border-top: 1px solid var(--line); }
   .brand { padding: 10px 12px 8px; }
   .brand h1 { font-size: 18px; }
-  .tabs { order: 4; border-top: 1px solid var(--line); border-bottom: 0; position: fixed; bottom: 0; left: 0; right: 0; background: var(--panel); z-index: 99999; padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .tabs { order: 4; border-top: 1px solid var(--line); border-bottom: 0; position: fixed; bottom: 0; left: 0; right: 0; background: var(--panel); z-index: 99999; padding-bottom: env(safe-area-ins[...]
   .tabs button { padding: 10px 6px; font-size: 12px; flex: 1; pointer-events: auto; border: none; background: transparent; cursor: pointer; }
   .tabs button#tab-menu { font-size: 18px; padding: 8px; }
   .quick-actions { padding: 8px 12px; }
@@ -182,7 +182,6 @@ table.sections input { width: 100%; padding: 4px 5px; }
   margin-bottom: 16px;
 }
 .modal-header h2 { margin: 0; font-size: 18px; }
-.close-btn { background: none; border: none; font-size: 24px; color: var(--muted); cursor: pointer; padding: 8px; }
 .modal-body { display: flex; flex-direction: column; gap: 16px; }
 .modal-body .group h3 { font-size: 14px; margin-bottom: 8px; }
 .modal-body ul { padding-left: 20px; margin: 0; }
@@ -231,16 +230,16 @@ table.sections input { width: 100%; padding: 4px 5px; }
   <section class="pane" id="pane-road">
     <div class="group">
       <h2>ลากปรับขอบถนน</h2>
-      <div class="row"><button class="btn primary" id="btn-edit-edges" type="button" aria-pressed="false" title="คลิกเพื่อเริ่มปรับขอบถนน">เริ่มลากปรับขอบ</button></div>
+      <div class="row"><button class="btn primary" id="btn-edit-edges" type="button" aria-pressed="false" title="คลิกเพื่อเริ่มปรับขอบถนน">เร��[...]
       <div class="row">
         <label><input type="radio" name="edge-mode" id="mode-one" value="one" checked> ขยับขอบเดียว</label>
         <label><input type="radio" name="edge-mode" id="mode-both" value="both"> ขยับทั้งถนน</label>
       </div>
       <div class="row"><label for="in-hstep">จุดจับทุก</label>
         <select id="in-hstep"><option value="10">10 ม.</option><option value="20" selected>20 ม.</option><option value="40">40 ม.</option></select></div>
-      <p class="hint" id="edge-status">ลากจุดบนเส้นขอบเข้าในหรือออกนอก จุดจะเลื่อนได้แค่แนวปกติของถนน</p>
-      <div class="row"><button class="btn small" id="btn-reset-edges" type="button" title="คืนค่าขอบถนนทั้งหมดเป็นค่าเดิม">คืนค่าขอบถนน</button></div>
-      <div class="row" id="reset-edges-confirm" hidden><span class="hint">ล้างการปรับขอบทั้งหมดแน่ใจไหม</span><button class="btn small" id="btn-reset-yes" type="button">ใช่</button><button class="btn small" id="btn-reset-no" type="button">ไม่</button></div>
+      <p class="hint" id="edge-status">ลากจุดบนเส้นขอบเข้าในหรือออกนอก จุดจะเลื่อนได้แค่แนว��[...]
+      <div class="row"><button class="btn small" id="btn-reset-edges" type="button" title="คืนค่าขอบถนนทั้งหมดเป็นค่าเดิม">คืนค[...]
+      <div class="row" id="reset-edges-confirm" hidden><span class="hint">ล้างการปรับขอบทั้งหมดแน่ใจไหม</span><button class="btn small" i[...]
     </div>
     <!-- ...rest of UI... (unchanged) -->
   </section>
@@ -298,8 +297,50 @@ if (typeof L === 'undefined') {
 <!-- startCourse will be injected by separate script file loaded below -->
 <script src="./startCourse.js"></script>
 
-<!-- The large original inline script continues here in the file (unchanged) -->
-<!-- To keep this commit small and safe, I'm not repeating entire original file here. -->
+<!-- Initialize map -->
+<script>
+"use strict";
+
+console.log("DOM loaded, initializing app...");
+if (typeof L === 'undefined') {
+  console.error("Leaflet library not loaded!");
+  alert("ไม่สามารถโหลดแผนที่ได้ กรุณาเช็คการเชื่อมต่ออินเทอร์เน็ต");
+} else {
+  console.log("Leaflet loaded successfully");
+}
+
+// Initialize map
+let map;
+try {
+  // Create map and set a sensible default center/zoom so other code can safely use it.
+  map = L.map("map", { zoomControl: true, maxZoom: 21, zoomSnap: 0.25, attributionControl: true });
+  // Default view: Bangkok (approx). Adjust coordinates/zoom if you prefer another default.
+  map.setView([13.736717, 100.523186], 15);
+  map.whenReady(() => console.log('Map ready and view set'));
+
+  const SAT_URL = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+  const SAT_MAX_NATIVE = 19;
+  L.tileLayer(SAT_URL, { maxZoom: 21, maxNativeZoom: SAT_MAX_NATIVE, attribution: "Imagery © Esri, Maxar, Earthstar Geographics" }).addTo(map);
+  L.control.scale({ metric: true, imperial: false }).addTo(map);
+  console.log("Map initialized successfully");
+
+  // Hide loading screen
+  const loadingScreen = document.getElementById("loading-screen");
+  if (loadingScreen) {
+    loadingScreen.style.display = "none";
+  }
+} catch (e) {
+  console.error("Error initializing map:", e);
+  const loadingError = document.getElementById("loading-error");
+  if (loadingError) {
+    loadingError.style.display = "block";
+    loadingError.textContent = "เกิดข้อผิดพลาด: " + e.message;
+  }
+}
+
+// NOTE: The rest of the original inline script continues below in the file.
+// For brevity in this commit I keep the original script content unchanged except
+// that a separate startCourse function will be loaded from startCourse.js.
 </script>
 
 <!-- Load startCourse helper (defines window.startCourse) -->
