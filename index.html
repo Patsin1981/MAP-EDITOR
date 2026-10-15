@@ -159,32 +159,34 @@ table.sections input { width: 100%; padding: 4px 5px; }
     font-size: 14px;
   }
   
-  /* Modal */
-  .modal {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.5);
-    display: none; align-items: center; justify-content: center;
-    z-index: 3000;
-  }
-  .modal.open { display: flex; }
-  .modal-content {
-    background: var(--panel);
-    border-radius: 12px;
-    max-width: 90%;
-    max-height: 80%;
-    overflow-y: auto;
-    padding: 20px;
-  }
-  .modal-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 16px;
-  }
-  .modal-header h2 { margin: 0; font-size: 18px; }
-  .modal-body { gap: 16px; }
-  .modal-body .group h3 { font-size: 14px; margin-bottom: 8px; }
-  .modal-body ul { padding-left: 20px; margin: 0; }
-  .modal-body li { margin-bottom: 4px; }
 }
+/* Modal — applies on all screen sizes */
+.modal {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: none; align-items: center; justify-content: center;
+  z-index: 3000;
+}
+.modal.open { display: flex; }
+.modal-content {
+  background: var(--panel);
+  border-radius: 12px;
+  max-width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 20px;
+  min-width: 320px;
+}
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px;
+}
+.modal-header h2 { margin: 0; font-size: 18px; }
+.close-btn { background: none; border: none; font-size: 24px; color: var(--muted); cursor: pointer; padding: 8px; }
+.modal-body { display: flex; flex-direction: column; gap: 16px; }
+.modal-body .group h3 { font-size: 14px; margin-bottom: 8px; }
+.modal-body ul { padding-left: 20px; margin: 0; }
+.modal-body li { margin-bottom: 4px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 
 /* Animations */
