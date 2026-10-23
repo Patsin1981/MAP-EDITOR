@@ -29,8 +29,6 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script type="text/javascript" src="https://www.dropbox.com/static/api/2/dropins.js" id="dropboxjs"></script>
-<script src="https://apis.google.com/js/api.js"></script>
 <style>
 /* Layout: full-bleed satellite map + docked control rail (right on desktop, bottom sheet on phone) */
 :root {
@@ -359,7 +357,6 @@ table.sections input { width: 100%; padding: 4px 5px; }
       <p class="hint">บันทึกค่าถนนและอุปกรณ์ทั้งหมดเป็นไฟล์ไว้เปิดแก้ต่อ</p>
       <div class="row"><button class="btn" id="btn-save-file" type="button">บันทึกไฟล์งาน</button><button class="btn" id="btn-open" type="button">เปิดไฟล์งาน</button></div>
       <div class="row"><button class="btn" id="btn-share" type="button">🔗 แชร์ลิงก์</button><button class="btn" id="btn-gpx" type="button">เปิด GPX เส้นใหม่</button></div>
-      <div class="row"><button class="btn" id="btn-open-dropbox" type="button">📁 เปิดจาก Dropbox</button><button class="btn" id="btn-open-drive" type="button">📁 เปิดจาก Google Drive</button></div>
       <input id="file-json" type="file" accept=".json,application/json" hidden>
       <input id="file-gpx" type="file" accept=".gpx" hidden>
     </div>
@@ -1284,131 +1281,6 @@ function loadFromUrl() {
 }
 document.getElementById("btn-open").addEventListener("click", () => document.getElementById("file-json").click());
 document.getElementById("btn-gpx").addEventListener("click", () => document.getElementById("file-gpx").click());
-
-// Dropbox Chooser
-document.getElementById("btn-open-dropbox").addEventListener("click", () => {
-  if (typeof Dropbox === 'undefined') {
-    toast("Dropbox API ยังไม่โหลด กรุณารอสักครู่");
-    return;
-  }
-  Dropbox.choose({
-    linkType: 'direct',
-    extensions: ['.json', '.gpx'],
-    success: async (files) => {
-      if (files.length === 0) return;
-      const file = files[0];
-      try {
-        const response = await fetch(file.link);
-        const text = await response.text();
-        if (file.name.endsWith('.json')) {
-          const obj = JSON.parse(text);
-          if (!obj || obj.v !== 1 || !Array.isArray(obj.data?.track)) throw new Error("ไม่ใช่ไฟล์งานของเครื่องมือนี้");
-          if (obj.data.track.length < 2) throw new Error("ข้อมูลเส้นทางไม่ถูกต้อง");
-          saveState();
-          Object.assign(state, obj.data);
-          startCourse(true);
-          toast(`เปิดไฟล์จาก Dropbox: ${file.name}`);
-        } else if (file.name.endsWith('.gpx')) {
-          const g = parseGpx(text);
-          if (g.track.length < 2) { toast("ไม่พบจุด track ในไฟล์ GPX นี้"); return; }
-          saveState();
-          Object.assign(state, { track: g.track, name: g.name || file.name.replace(/\.gpx$/i, ""), sections: [], items: [], shift: 0, adjL: {}, adjR: {} });
-          state.title = state.name;
-          startCourse(true);
-          toast(`โหลดจาก Dropbox: ${state.name}`);
-        }
-      } catch (err) {
-        toast(`เปิดไฟล์จาก Dropbox ไม่ได้: ${err.message}`);
-      }
-    },
-    cancel: () => {
-      console.log('Dropbox chooser cancelled');
-    }
-  });
-});
-
-// Google Picker (needs OAuth configuration)
-let pickerApiLoaded = false;
-let oauthToken = null;
-
-function onApiLoad() {
-  gapi.load('auth2', () => {
-    gapi.auth2.init({
-      client_id: 'YOUR_GOOGLE_CLIENT_ID',
-      scope: 'https://www.googleapis.com/auth/drive.readonly'
-    }).then(() => {
-      pickerApiLoaded = true;
-      console.log('Google Picker API loaded');
-    });
-  });
-}
-
-document.getElementById("btn-open-drive").addEventListener("click", () => {
-  if (!pickerApiLoaded) {
-    toast("Google Picker API ยังไม่โหลด หรือยังไม่ได้ configure");
-    return;
-  }
-
-  gapi.auth2.getAuthInstance().signIn().then((user) => {
-    oauthToken = user.getAuthResponse().access_token;
-    createPicker();
-  }).catch((err) => {
-    toast("Google Drive authentication failed: " + err.error);
-  });
-});
-
-function createPicker() {
-  if (oauthToken) {
-    const picker = new google.picker.PickerBuilder()
-      .addView(google.picker.ViewId.DOCS)
-      .setOAuthToken(oauthToken)
-      .setDeveloperKey('YOUR_GOOGLE_DEVELOPER_KEY')
-      .setCallback(pickerCallback)
-      .build();
-    picker.setVisible(true);
-  }
-}
-
-function pickerCallback(data) {
-  if (data[google.picker.Response.ACTION] === google.picker.Action.PICKED) {
-    const doc = data[google.picker.Response.DOCUMENTS][0];
-    const fileId = doc[google.picker.Document.ID];
-    const fileName = doc[google.picker.Document.NAME];
-
-    // Download file from Google Drive
-    fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-      headers: {
-        'Authorization': `Bearer ${oauthToken}`
-      }
-    })
-    .then(response => response.text())
-    .then(text => {
-      if (fileName.endsWith('.json')) {
-        const obj = JSON.parse(text);
-        if (!obj || obj.v !== 1 || !Array.isArray(obj.data?.track)) throw new Error("ไม่ใช่ไฟล์งานของเครื่องมือนี้");
-        if (obj.data.track.length < 2) throw new Error("ข้อมูลเส้นทางไม่ถูกต้อง");
-        saveState();
-        Object.assign(state, obj.data);
-        startCourse(true);
-        toast(`เปิดไฟล์จาก Google Drive: ${fileName}`);
-      } else if (fileName.endsWith('.gpx')) {
-        const g = parseGpx(text);
-        if (g.track.length < 2) { toast("ไม่พบจุด track ในไฟล์ GPX นี้"); return; }
-        saveState();
-        Object.assign(state, { track: g.track, name: g.name || fileName.replace(/\.gpx$/i, ""), sections: [], items: [], shift: 0, adjL: {}, adjR: {} });
-        state.title = state.name;
-        startCourse(true);
-        toast(`โหลดจาก Google Drive: ${state.name}`);
-      }
-    })
-    .catch(err => {
-      toast(`เปิดไฟล์จาก Google Drive ไม่ได้: ${err.message}`);
-    });
-  }
-}
-
-// Load Google API
-gapi.load('picker', onApiLoad);
 document.getElementById("file-json").addEventListener("change", async (e) => {
   const f = e.target.files[0]; if (!f) return;
   try {
