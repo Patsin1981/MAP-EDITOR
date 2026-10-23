@@ -1520,17 +1520,25 @@ if ('serviceWorker' in navigator) {
 }
 
 /* ===== MOBILE BOTTOM SHEET & MODALS ===== */
+console.log("Initializing modals...");
 const bottomSheet = document.getElementById("bottom-sheet");
 const settingsModal = document.getElementById("settings-modal");
 const aboutModal = document.getElementById("about-modal");
 
+console.log("bottomSheet:", bottomSheet);
+console.log("settingsModal:", settingsModal);
+console.log("aboutModal:", aboutModal);
+
 // Tab menu button
 const tabMenuBtn = document.getElementById("tab-menu");
+console.log("tabMenuBtn:", tabMenuBtn);
 if (tabMenuBtn) {
   tabMenuBtn.addEventListener("click", (e) => {
+    console.log("Tab menu clicked!", e);
     e.preventDefault();
     e.stopPropagation();
     bottomSheet.classList.toggle("open");
+    console.log("bottomSheet.classList:", bottomSheet.classList);
   });
 } else {
   console.error("Tab menu button not found!");
@@ -1578,21 +1586,38 @@ tabButtons.forEach(btn => {
 });
 
 // Close bottom sheet
-document.getElementById("close-bottom-sheet").addEventListener("click", () => {
-  bottomSheet.classList.remove("open");
-});
+const closeBottomSheet = document.getElementById("close-bottom-sheet");
+console.log("closeBottomSheet:", closeBottomSheet);
+if (closeBottomSheet) {
+  closeBottomSheet.addEventListener("click", () => {
+    console.log("Close bottom sheet clicked");
+    bottomSheet.classList.remove("open");
+  });
+}
 
 // Open settings
-document.getElementById("menu-settings").addEventListener("click", () => {
-  bottomSheet.classList.remove("open");
-  settingsModal.classList.add("open");
-});
+const menuSettings = document.getElementById("menu-settings");
+console.log("menuSettings:", menuSettings);
+if (menuSettings) {
+  menuSettings.addEventListener("click", () => {
+    console.log("Settings menu clicked");
+    bottomSheet.classList.remove("open");
+    settingsModal.classList.add("open");
+    console.log("settingsModal.classList:", settingsModal.classList);
+  });
+}
 
 // Open about
-document.getElementById("menu-about").addEventListener("click", () => {
-  bottomSheet.classList.remove("open");
-  aboutModal.classList.add("open");
-});
+const menuAbout = document.getElementById("menu-about");
+console.log("menuAbout:", menuAbout);
+if (menuAbout) {
+  menuAbout.addEventListener("click", () => {
+    console.log("About menu clicked");
+    bottomSheet.classList.remove("open");
+    aboutModal.classList.add("open");
+    console.log("aboutModal.classList:", aboutModal.classList);
+  });
+}
 
 // Reset all
 document.getElementById("menu-reset").addEventListener("click", () => {
