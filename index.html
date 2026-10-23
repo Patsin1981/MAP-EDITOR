@@ -132,16 +132,14 @@ table.sections input { width: 100%; padding: 4px 5px; }
   
   /* Bottom Sheet */
   .bottom-sheet {
-    display: block;
+    display: none;
     position: fixed; bottom: 0; left: 0; right: 0;
     background: var(--panel); border-top: 1px solid var(--line);
     border-radius: 16px 16px 0 0;
     padding: 16px;
     z-index: 2000;
-    transform: translateY(100%);
-    transition: transform 0.3s ease;
   }
-  .bottom-sheet.open { transform: translateY(0); }
+  .bottom-sheet.open { display: block; animation: slideUp 0.3s ease; }
   .bottom-sheet-header {
     display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 16px;
@@ -365,7 +363,7 @@ table.sections input { width: 100%; padding: 4px 5px; }
 </aside>
 
 <!-- Bottom Sheet for Menu -->
-<div class="bottom-sheet" id="bottom-sheet">
+<div class="bottom-sheet" id="bottom-sheet" hidden>
   <div class="bottom-sheet-header">
     <h3>เมนู</h3>
     <button class="close-btn" id="close-bottom-sheet">✕</button>
@@ -378,7 +376,7 @@ table.sections input { width: 100%; padding: 4px 5px; }
 </div>
 
 <!-- Settings Modal -->
-<div class="modal" id="settings-modal">
+<div class="modal" id="settings-modal" hidden>
   <div class="modal-content">
     <div class="modal-header">
       <h2>⚙️ ตั้งค่า</h2>
@@ -417,7 +415,7 @@ table.sections input { width: 100%; padding: 4px 5px; }
 </div>
 
 <!-- About Modal -->
-<div class="modal" id="about-modal">
+<div class="modal" id="about-modal" hidden>
   <div class="modal-content">
     <div class="modal-header">
       <h2>ℹ️ เกี่ยวกับ</h2>
