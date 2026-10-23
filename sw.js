@@ -1,4 +1,4 @@
-const CACHE_NAME = 'map-editor-v5';
+const CACHE_NAME = 'map-editor-v6';
 
 // ไฟล์ของแอป (โดเมนเดียวกัน) — ใช้ network-first เพื่อให้ได้เวอร์ชันล่าสุดเสมอ
 // ถ้าออฟไลน์ค่อยใช้ของที่ cache ไว้
@@ -57,7 +57,10 @@ self.addEventListener('fetch', event => {
   const isCdn = CDN_ASSETS.includes(req.url) ||
     url.hostname === 'fonts.gstatic.com';
   const isSameOrigin = url.origin === self.location.origin;
+  // ข้าม Dropbox และ Google APIs (authentication)
+  const isAuthApi = url.hostname === 'www.dropbox.com' || url.hostname === 'apis.google.com';
   if (!isSameOrigin && !isCdn) return;
+  if (isAuthApi) return;
 
   if (isSameOrigin) {
     // network-first
