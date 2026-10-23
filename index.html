@@ -358,7 +358,7 @@ table.sections input { width: 100%; padding: 4px 5px; }
     <div class="group">
       <h2>ล้างข้อมูล</h2>
       <p class="hint">ล้างข้อมูลที่บันทึกไว้ใน localStorage</p>
-      <div class="row"><button class="btn" id="btn-clear-storage" type="button">ล้างข้อมูลที่บันทึก</button></div>
+      <div class="row"><button class="btn" id="btn-clear-storage-main" type="button">ล้างข้อมูลที่บันทึก</button></div>
       <div class="row" id="clear-storage-confirm" hidden><span class="hint">ล้างข้อมูลแน่ใจไหม</span><button class="btn small primary" id="btn-clear-storage-yes" type="button">ล้าง</button><button class="btn small" id="btn-clear-storage-no" type="button">ยกเลิก</button></div>
     </div>
   </section>
@@ -1117,7 +1117,7 @@ elSub.addEventListener("input", () => { state.subtitle = elSub.value; persist();
 const elAutosave = document.getElementById("in-autosave-main");
 elAutosave.checked = state.autosave;
 elAutosave.addEventListener("change", () => { state.autosave = elAutosave.checked; const m = document.getElementById("in-autosave-modal"); if (m) m.checked = state.autosave; if (state.autosave) persist(); });
-document.getElementById("btn-clear-storage").addEventListener("click", () => { document.getElementById("clear-storage-confirm").hidden = false; });
+document.getElementById("btn-clear-storage-main").addEventListener("click", () => { document.getElementById("clear-storage-confirm").hidden = false; });
 document.getElementById("btn-clear-storage-no").addEventListener("click", () => { document.getElementById("clear-storage-confirm").hidden = true; });
 document.getElementById("btn-clear-storage-yes").addEventListener("click", () => {
   localStorage.removeItem(STORE_KEY);
